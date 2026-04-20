@@ -36,3 +36,4 @@ Thumbs.db
 
 # Streamlit
 .streamlit/
+.claude/

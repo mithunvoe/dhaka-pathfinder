@@ -188,15 +188,24 @@ if results:
             )
 
         st.markdown("### Best path by cost")
-        best_algo, best = min(
-            ((a, r) for a, r in results.items() if r.stats.success),
-            key=lambda t: t[1].stats.path_cost,
-            default=(None, None),
-        )
-        if best_algo:
-            st.success(f"{ALGO_LABELS.get(best_algo, best_algo)} — cost {best.stats.path_cost:,.1f}")
-        else:
+        succ = [(a, r) for a, r in results.items() if r.stats.success]
+        if not succ:
             st.error("No algorithm found a path.")
+        else:
+            min_cost = min(r.stats.path_cost for _, r in succ)
+            winners = [(a, r) for a, r in succ if abs(r.stats.path_cost - min_cost) < 1e-3]
+            if len(winners) == 1:
+                a, r = winners[0]
+                st.success(f"🏆 **{ALGO_LABELS.get(a, a)}** — cost {r.stats.path_cost:,.1f}")
+            else:
+                names = ", ".join(ALGO_LABELS.get(a, a) for a, _ in winners)
+                st.success(
+                    f"🏆 **{len(winners)}-way tie at cost {min_cost:,.1f}**\n\n"
+                    f"{names}\n\n"
+                    "*UCS, A\\*, and Weighted A\\* are all provably optimal, so they usually "
+                    "tie on cost. A\\* and Weighted A\\* get there by expanding fewer nodes.*"
+                )
+            st.caption("Layers are ordered so the winner(s) are drawn on top of the map.")
 
 
 with st.expander("🔬 How the cost is computed", expanded=False):

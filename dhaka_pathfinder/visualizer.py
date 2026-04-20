@@ -53,7 +53,12 @@ def build_route_map(
     destination: int,
     title: str = "Dhaka Route Comparison",
 ) -> folium.Map:
-    """One Folium map with a toggleable layer per algorithm."""
+    """One Folium map with a toggleable layer per algorithm.
+
+    Layers are added in *worst-to-best* cost order so the winning (lowest-cost)
+    path always ends up **on top** of the Z-stack. We also give the winner a
+    thicker stroke + brighter outline so it stands out even under a layer pile.
+    """
     src_lat, src_lon = node_coords(G, source)
     dst_lat, dst_lon = node_coords(G, destination)
     center = ((src_lat + dst_lat) / 2, (src_lon + dst_lon) / 2)
@@ -81,13 +86,23 @@ def build_route_map(
         icon=folium.Icon(color="red", icon="flag-checkered", prefix="fa"),
     ).add_to(m)
 
-    for algo, result in results.items():
-        if not result.path:
-            continue
+    successful = [(algo, r) for algo, r in results.items() if r.path and r.stats.success]
+    if successful:
+        min_cost = min(r.stats.path_cost for _, r in successful)
+        ordered = sorted(
+            successful,
+            key=lambda t: (-t[1].stats.path_cost, t[0]),
+        )
+    else:
+        ordered = []
+        min_cost = float("inf")
+
+    for algo, result in ordered:
         coords = path_coords(G, result.path)
         stats = result.stats
+        is_winner = abs(stats.path_cost - min_cost) < 1e-3
         popup_html = (
-            f"<b>{ALGO_LABELS.get(algo, algo)}</b><br>"
+            f"<b>{ALGO_LABELS.get(algo, algo)}</b>{' 🏆' if is_winner else ''}<br>"
             f"Cost: {stats.path_cost:,.1f}<br>"
             f"Length: {stats.path_length_meters/1000:.2f} km<br>"
             f"Edges: {stats.path_length_edges}<br>"
@@ -95,14 +110,25 @@ def build_route_map(
             f"Runtime: {stats.runtime_seconds*1000:.1f} ms<br>"
             f"EBF: {stats.effective_branching_factor:.2f}"
         )
-        fg = folium.FeatureGroup(name=ALGO_LABELS.get(algo, algo), show=True)
+        fg = folium.FeatureGroup(
+            name=f"{'🏆 ' if is_winner else ''}{ALGO_LABELS.get(algo, algo)}",
+            show=True,
+        )
+        if is_winner:
+            folium.PolyLine(
+                locations=coords,
+                color="#ffffff",
+                weight=9,
+                opacity=0.9,
+            ).add_to(fg)
         folium.PolyLine(
             locations=coords,
             color=ALGO_COLORS.get(algo, "#000000"),
-            weight=5,
-            opacity=0.8,
+            weight=7 if is_winner else 4,
+            opacity=0.95 if is_winner else 0.55,
             popup=folium.Popup(popup_html, max_width=320),
-            tooltip=ALGO_LABELS.get(algo, algo),
+            tooltip=f"{'🏆 ' if is_winner else ''}{ALGO_LABELS.get(algo, algo)}  |  {stats.path_cost:,.0f}",
+            dash_array=None if is_winner else "6, 6",
         ).add_to(fg)
         fg.add_to(m)
 
