@@ -118,17 +118,16 @@ def build_route_map(
             folium.PolyLine(
                 locations=coords,
                 color="#ffffff",
-                weight=9,
-                opacity=0.9,
+                weight=10,
+                opacity=0.95,
             ).add_to(fg)
         folium.PolyLine(
             locations=coords,
             color=ALGO_COLORS.get(algo, "#000000"),
-            weight=7 if is_winner else 4,
-            opacity=0.95 if is_winner else 0.55,
+            weight=8 if is_winner else 5,
+            opacity=0.95 if is_winner else 0.82,
             popup=folium.Popup(popup_html, max_width=320),
             tooltip=f"{'🏆 ' if is_winner else ''}{ALGO_LABELS.get(algo, algo)}  |  {stats.path_cost:,.0f}",
-            dash_array=None if is_winner else "6, 6",
         ).add_to(fg)
         fg.add_to(m)
 

@@ -187,25 +187,37 @@ if results:
                 unsafe_allow_html=True,
             )
 
-        st.markdown("### Best path by cost")
+        st.markdown("### 🏆 Category Winners")
         succ = [(a, r) for a, r in results.items() if r.stats.success]
         if not succ:
             st.error("No algorithm found a path.")
         else:
-            min_cost = min(r.stats.path_cost for _, r in succ)
-            winners = [(a, r) for a, r in succ if abs(r.stats.path_cost - min_cost) < 1e-3]
-            if len(winners) == 1:
-                a, r = winners[0]
-                st.success(f"🏆 **{ALGO_LABELS.get(a, a)}** — cost {r.stats.path_cost:,.1f}")
-            else:
-                names = ", ".join(ALGO_LABELS.get(a, a) for a, _ in winners)
-                st.success(
-                    f"🏆 **{len(winners)}-way tie at cost {min_cost:,.1f}**\n\n"
-                    f"{names}\n\n"
-                    "*UCS, A\\*, and Weighted A\\* are all provably optimal, so they usually "
-                    "tie on cost. A\\* and Weighted A\\* get there by expanding fewer nodes.*"
+            def _winners_by(key, smaller_is_better=True, tol=1e-3):
+                vals = [(a, r, key(r)) for a, r in succ]
+                best_val = min(v for _, _, v in vals) if smaller_is_better else max(v for _, _, v in vals)
+                winners = [(a, r, v) for a, r, v in vals if abs(v - best_val) <= tol]
+                return winners, best_val
+
+            cost_winners, best_cost = _winners_by(lambda r: r.stats.path_cost)
+            expand_winners, best_expand = _winners_by(lambda r: r.stats.nodes_expanded)
+            time_winners, best_time = _winners_by(lambda r: r.stats.runtime_seconds)
+            length_winners, best_length = _winners_by(lambda r: r.stats.path_length_meters)
+
+            def _names(winners: list) -> str:
+                raw = " / ".join(ALGO_LABELS.get(a, a) for a, _, _ in winners)
+                return raw.replace("*", "\\*")
+
+            st.success(f"💰 **Lowest cost** — {_names(cost_winners)}  \n`{best_cost:,.1f}`")
+            st.info(f"🎯 **Fewest nodes expanded** — {_names(expand_winners)}  \n`{int(best_expand):,}` nodes")
+            st.info(f"⚡ **Fastest** — {_names(time_winners)}  \n`{best_time*1000:.2f} ms`")
+            st.info(f"📏 **Shortest distance** — {_names(length_winners)}  \n`{best_length/1000:.3f} km`")
+
+            if len(cost_winners) > 1:
+                st.caption(
+                    f"{len(cost_winners)}-way tie on cost is expected — UCS, A★, and "
+                    "Weighted A★ are all provably optimal. What distinguishes them is "
+                    "how efficiently they get there (see the other categories)."
                 )
-            st.caption("Layers are ordered so the winner(s) are drawn on top of the map.")
 
 
 with st.expander("🔬 How the cost is computed", expanded=False):
