@@ -96,7 +96,12 @@ with st.sidebar:
     heuristic = st.selectbox(
         "Heuristic (informed algorithms only)",
         options=list(HEURISTIC_FACTORIES.keys()),
-        index=list(HEURISTIC_FACTORIES.keys()).index("haversine_admissible"),
+        index=list(HEURISTIC_FACTORIES.keys()).index("network_relaxed"),
+        help=("`network_relaxed` is THE primary comprehensive heuristic — it takes every "
+              "contextual factor (time, weather, age, gender, vehicle, road condition, "
+              "safety, lighting, water-logging, crime, lanes, traffic) into account while "
+              "remaining provably admissible. The other options exist for the Axis-B "
+              "comparative analysis required by the brief."),
     )
     admissible_tag = "✅ admissible" if HEURISTIC_INFO[heuristic].admissible else "⚠️ non-admissible"
     st.caption(f"{admissible_tag} — {HEURISTIC_INFO[heuristic].description}")

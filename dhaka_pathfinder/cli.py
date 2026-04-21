@@ -102,7 +102,7 @@ def _resolve_point(arg: str) -> tuple[float, float]:
 @click.option("--source", required=True, help="Source: landmark name or 'lat,lon'.")
 @click.option("--dest", required=True, help="Destination: landmark name or 'lat,lon'.")
 @click.option("--algorithm", type=click.Choice(sorted(ALGORITHMS)), default="astar")
-@click.option("--heuristic", type=click.Choice(sorted(HEURISTIC_FACTORIES)), default="haversine_admissible")
+@click.option("--heuristic", type=click.Choice(sorted(HEURISTIC_FACTORIES)), default="network_relaxed")
 @click.option("--gender", type=click.Choice(["male", "female", "nonbinary"]), default="male")
 @click.option("--social", type=click.Choice(["alone", "accompanied"]), default="alone")
 @click.option("--age", type=click.Choice(["adult", "child", "elderly"]), default="adult")

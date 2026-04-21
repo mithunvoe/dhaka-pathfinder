@@ -88,7 +88,7 @@ class DhakaPathfinderEngine:
         source: int,
         destination: int,
         context: TravelContext | None = None,
-        heuristic_name: str = "haversine_admissible",
+        heuristic_name: str = "network_relaxed",
         **kwargs: object,
     ) -> SearchResult:
         if self.graph is None:
@@ -113,7 +113,7 @@ class DhakaPathfinderEngine:
         source: int,
         destination: int,
         context: TravelContext | None = None,
-        heuristic_name: str = "haversine_admissible",
+        heuristic_name: str = "network_relaxed",
     ) -> dict[str, SearchResult]:
         out: dict[str, SearchResult] = {}
         for name in ALGORITHMS:
