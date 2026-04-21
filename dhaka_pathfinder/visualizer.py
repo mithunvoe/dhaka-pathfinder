@@ -46,21 +46,12 @@ def path_coords(G: nx.MultiDiGraph, path: list[int]) -> list[tuple[float, float]
     return [node_coords(G, n) for n in path]
 
 
-TILE_LIGHT = "CartoDB positron"
-TILE_DARK = "CartoDB dark_matter"
-
-
-def _primary_tile(theme: str) -> str:
-    return TILE_DARK if theme.lower() == "dark" else TILE_LIGHT
-
-
 def build_route_map(
     G: nx.MultiDiGraph,
     results: dict[str, SearchResult],
     source: int,
     destination: int,
     title: str = "Dhaka Route Comparison",
-    theme: str = "light",
 ) -> folium.Map:
     """One Folium map with a toggleable layer per algorithm.
 
@@ -72,17 +63,13 @@ def build_route_map(
     dst_lat, dst_lon = node_coords(G, destination)
     center = ((src_lat + dst_lat) / 2, (src_lon + dst_lon) / 2)
 
-    primary_tile = _primary_tile(theme)
-    secondary_tile = TILE_LIGHT if primary_tile == TILE_DARK else TILE_DARK
-
     m = folium.Map(
         location=center,
         zoom_start=13,
-        tiles=primary_tile,
+        tiles="CartoDB positron",
         control_scale=True,
     )
     folium.TileLayer("OpenStreetMap", name="OSM").add_to(m)
-    folium.TileLayer(secondary_tile, name=("Light" if primary_tile == TILE_DARK else "Dark")).add_to(m)
     Fullscreen().add_to(m)
     MiniMap(toggle_display=True).add_to(m)
 

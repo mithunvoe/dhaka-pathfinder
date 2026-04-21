@@ -8,23 +8,16 @@ from __future__ import annotations
 
 import logging
 
-import folium
 import pandas as pd
 import streamlit as st
 from streamlit_folium import st_folium
 
 from dhaka_pathfinder.algorithms import ALGORITHMS
-from dhaka_pathfinder.config import DHAKA_CENTER, LANDMARKS
+from dhaka_pathfinder.config import LANDMARKS
 from dhaka_pathfinder.context import TravelContext
 from dhaka_pathfinder.engine import DhakaPathfinderEngine, EngineConfig
 from dhaka_pathfinder.heuristics import HEURISTIC_FACTORIES, HEURISTIC_INFO
-from dhaka_pathfinder.visualizer import (
-    ALGO_COLORS,
-    ALGO_LABELS,
-    TILE_DARK,
-    TILE_LIGHT,
-    build_route_map,
-)
+from dhaka_pathfinder.visualizer import ALGO_COLORS, ALGO_LABELS, build_route_map
 
 logging.basicConfig(level=logging.INFO)
 
@@ -69,24 +62,13 @@ with st.sidebar:
     st.header("Route Configuration")
 
     st.subheader("Source & Destination")
-    input_method = st.radio(
-        "How to pick",
-        ["Landmark", "Click on map", "Manual coordinates"],
-        horizontal=False,
-        index=0,
-    )
-
     landmark_names = sorted(LANDMARKS.keys())
-    source_name = landmark_names[landmark_names.index("Shahbag") if "Shahbag" in landmark_names else 0]
-    dest_name = landmark_names[landmark_names.index("Motijheel") if "Motijheel" in landmark_names else 1]
+    source_name = st.selectbox("Source landmark", landmark_names, index=landmark_names.index("Shahbag") if "Shahbag" in landmark_names else 0)
+    dest_name = st.selectbox("Destination landmark", landmark_names, index=landmark_names.index("Motijheel") if "Motijheel" in landmark_names else 1)
 
-    if input_method == "Landmark":
-        source_name = st.selectbox("Source landmark", landmark_names, index=landmark_names.index(source_name))
-        dest_name = st.selectbox("Destination landmark", landmark_names, index=landmark_names.index(dest_name))
-        src_lat, src_lon = LANDMARKS[source_name]
-        dst_lat, dst_lon = LANDMARKS[dest_name]
-
-    elif input_method == "Manual coordinates":
+    st.caption("Or enter coordinates manually:")
+    use_manual = st.checkbox("Use manual coordinates", value=False)
+    if use_manual:
         c1, c2 = st.columns(2)
         with c1:
             src_lat = st.number_input("Source lat", value=float(LANDMARKS[source_name][0]), format="%.6f")
@@ -94,41 +76,9 @@ with st.sidebar:
         with c2:
             src_lon = st.number_input("Source lon", value=float(LANDMARKS[source_name][1]), format="%.6f")
             dst_lon = st.number_input("Dest lon", value=float(LANDMARKS[dest_name][1]), format="%.6f")
-
-    else:  # Click on map
-        stage = st.session_state.get("click_stage", "source")
-        if stage == "source":
-            st.info("🖱️ Next click on the map sets the **SOURCE** (green marker).")
-        else:
-            st.info("🖱️ Next click on the map sets the **DESTINATION** (red marker).")
-
-        c_reset, c_swap = st.columns(2)
-        with c_reset:
-            if st.button("🔄 Reset clicks", use_container_width=True):
-                for k in ("click_src_lat", "click_src_lon",
-                          "click_dst_lat", "click_dst_lon", "last_click_key"):
-                    st.session_state.pop(k, None)
-                st.session_state.click_stage = "source"
-                st.rerun()
-        with c_swap:
-            has_src = "click_src_lat" in st.session_state
-            has_dst = "click_dst_lat" in st.session_state
-            if st.button("↔️ Swap", use_container_width=True, disabled=not (has_src and has_dst)):
-                st.session_state.click_src_lat, st.session_state.click_dst_lat = (
-                    st.session_state.click_dst_lat, st.session_state.click_src_lat)
-                st.session_state.click_src_lon, st.session_state.click_dst_lon = (
-                    st.session_state.click_dst_lon, st.session_state.click_src_lon)
-                st.rerun()
-
-        if "click_src_lat" in st.session_state:
-            st.success(f"📍 Source: `{st.session_state.click_src_lat:.5f}, {st.session_state.click_src_lon:.5f}`")
-        if "click_dst_lat" in st.session_state:
-            st.success(f"🏁 Dest: `{st.session_state.click_dst_lat:.5f}, {st.session_state.click_dst_lon:.5f}`")
-
-        src_lat = st.session_state.get("click_src_lat", LANDMARKS[source_name][0])
-        src_lon = st.session_state.get("click_src_lon", LANDMARKS[source_name][1])
-        dst_lat = st.session_state.get("click_dst_lat", LANDMARKS[dest_name][0])
-        dst_lon = st.session_state.get("click_dst_lon", LANDMARKS[dest_name][1])
+    else:
+        src_lat, src_lon = LANDMARKS[source_name]
+        dst_lat, dst_lon = LANDMARKS[dest_name]
 
     st.subheader("Algorithm")
     algorithm = st.selectbox(
@@ -171,9 +121,6 @@ with st.sidebar:
     st.subheader("Cost Preset")
     preset = st.selectbox("Weight preset", ["balanced", "safety", "speed", "comfort"], index=0)
 
-    st.subheader("Map theme")
-    theme = st.selectbox("Tile style", ["Dark", "Light"], index=0).lower()
-
     run_button = st.button("🚀 Compute route", type="primary", use_container_width=True)
 
 engine = load_engine(preset)
@@ -188,54 +135,6 @@ col_info1.metric("Source node", f"{s_node}")
 col_info2.metric("Destination node", f"{d_node}")
 col_info3.metric("Graph nodes", f"{engine.graph.number_of_nodes():,}")
 col_info4.metric("Graph edges", f"{engine.graph.number_of_edges():,}")
-
-
-if input_method == "Click on map":
-    st.markdown("### 🖱️ Pick source & destination — click on the map")
-    picker = folium.Map(
-        location=DHAKA_CENTER,
-        zoom_start=12,
-        tiles=TILE_DARK if theme == "dark" else TILE_LIGHT,
-        control_scale=True,
-    )
-    if "click_src_lat" in st.session_state:
-        folium.Marker(
-            [st.session_state.click_src_lat, st.session_state.click_src_lon],
-            tooltip="Source",
-            icon=folium.Icon(color="green", icon="play", prefix="fa"),
-        ).add_to(picker)
-    if "click_dst_lat" in st.session_state:
-        folium.Marker(
-            [st.session_state.click_dst_lat, st.session_state.click_dst_lon],
-            tooltip="Destination",
-            icon=folium.Icon(color="red", icon="flag-checkered", prefix="fa"),
-        ).add_to(picker)
-
-    picker_data = st_folium(
-        picker,
-        key="picker_map",
-        use_container_width=True,
-        height=420,
-        returned_objects=["last_clicked"],
-    )
-
-    if picker_data and picker_data.get("last_clicked"):
-        last = picker_data["last_clicked"]
-        lat = float(last["lat"])
-        lng = float(last["lng"])
-        key = f"{lat:.6f},{lng:.6f}"
-        if st.session_state.get("last_click_key") != key:
-            st.session_state.last_click_key = key
-            stage = st.session_state.get("click_stage", "source")
-            if stage == "source":
-                st.session_state.click_src_lat = lat
-                st.session_state.click_src_lon = lng
-                st.session_state.click_stage = "dest"
-            else:
-                st.session_state.click_dst_lat = lat
-                st.session_state.click_dst_lon = lng
-                st.session_state.click_stage = "source"
-            st.rerun()
 
 
 if run_button or "results" not in st.session_state:
@@ -274,12 +173,9 @@ if results:
 
     with col_map:
         st.markdown("### Map")
-        src_label = source_name if input_method == "Landmark" else f"({src_lat:.4f},{src_lon:.4f})"
-        dst_label = dest_name if input_method == "Landmark" else f"({dst_lat:.4f},{dst_lon:.4f})"
         m = build_route_map(
             engine.graph, results, s_node, d_node,
-            title=f"{src_label} → {dst_label} | {ctx.label()}",
-            theme=theme,
+            title=f"{source_name} → {dest_name} | {ctx.label()}",
         )
         st_folium(m, use_container_width=True, height=620, returned_objects=[])
 
