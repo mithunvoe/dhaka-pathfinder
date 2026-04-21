@@ -15,9 +15,44 @@ from streamlit_folium import st_folium
 from dhaka_pathfinder.algorithms import ALGORITHMS
 from dhaka_pathfinder.config import LANDMARKS
 from dhaka_pathfinder.context import TravelContext
+from dhaka_pathfinder.cost_model import haversine_m
 from dhaka_pathfinder.engine import DhakaPathfinderEngine, EngineConfig
 from dhaka_pathfinder.heuristics import HEURISTIC_FACTORIES, HEURISTIC_INFO
 from dhaka_pathfinder.visualizer import ALGO_COLORS, ALGO_LABELS, build_route_map
+
+
+def _edge_road_name(graph, u: int, v: int) -> str:
+    """Return the OSM street name for the edge (u, v), or a short fallback."""
+    if not graph.has_edge(u, v):
+        return "—"
+    best_name = None
+    for key in graph[u][v]:
+        name = graph[u][v][key].get("name")
+        highway = graph[u][v][key].get("highway", "")
+        if name:
+            if isinstance(name, list):
+                name = name[0] if name else None
+            if name:
+                return str(name)
+        if not best_name and highway:
+            hw = highway[0] if isinstance(highway, list) else highway
+            best_name = f"(unnamed {hw})"
+    return best_name or "(unnamed road)"
+
+
+def _nearest_landmark(lat: float, lon: float, max_km: float = 0.5) -> str | None:
+    best_name = None
+    best_d = max_km * 1000.0
+    for name, (lmk_lat, lmk_lon) in LANDMARKS.items():
+        d = haversine_m(lat, lon, lmk_lat, lmk_lon)
+        if d < best_d:
+            best_d = d
+            best_name = name
+    return best_name
+
+
+def _pretty_area(area: str) -> str:
+    return (area or "").replace("_", " ").title() or "—"
 
 logging.basicConfig(level=logging.INFO)
 
@@ -193,8 +228,9 @@ if results:
     with st.expander("📍 Show the exact node sequence for each route", expanded=False):
         st.caption(
             "Every intermediate intersection each algorithm passes through. "
-            "Node IDs come from OpenStreetMap. Segment = physical length of "
-            "the road from the previous node. Cumulative = running total."
+            "**Road** is the OSM street name of the segment you follow to reach the next "
+            "intersection. **Area** is the Dhaka neighbourhood. **Landmark** is filled in "
+            "when a node is within 500 m of a known landmark (always set at source/dest)."
         )
         tab_labels = [ALGO_LABELS.get(a, a) for a, r in results.items() if r.path]
         tab_keys = [a for a, r in results.items() if r.path]
@@ -210,7 +246,8 @@ if results:
                         lat, lon = engine.coords(node)
                         if i == 0:
                             seg_m = 0.0
-                            tag = "🟢 Source"
+                            road_name = "(start)"
+                            marker = "🟢 Source"
                         else:
                             prev = r.path[i - 1]
                             seg_m = 0.0
@@ -219,16 +256,23 @@ if results:
                                     float(G[prev][node][k].get("length", 0.0))
                                     for k in G[prev][node]
                                 )
-                            tag = "🔴 Destination" if i == len(r.path) - 1 else ""
+                            road_name = _edge_road_name(G, prev, node)
+                            marker = "🔴 Destination" if i == len(r.path) - 1 else ""
                         cum_m += seg_m
+                        node_data = G.nodes[node]
+                        area = _pretty_area(node_data.get("area_name", ""))
+                        landmark = _nearest_landmark(lat, lon, max_km=0.5) or ""
                         rows_path.append({
                             "Step": i + 1,
-                            "Node ID": int(node),
-                            "Lat": round(lat, 6),
-                            "Lon": round(lon, 6),
+                            "Road (to get here)": road_name,
+                            "Area": area,
+                            "Landmark": landmark,
                             "Segment (m)": round(seg_m, 1),
                             "Cumulative (m)": round(cum_m, 1),
-                            "Marker": tag,
+                            "Lat": round(lat, 5),
+                            "Lon": round(lon, 5),
+                            "Node ID": int(node),
+                            "Marker": marker,
                         })
                     st.caption(
                         f"**{len(r.path)} intersections**, "
@@ -236,8 +280,20 @@ if results:
                         f"**{r.stats.path_length_meters/1000:.2f} km total**, "
                         f"realistic cost **{r.stats.path_cost:,.1f}**."
                     )
+
+                    df_path = pd.DataFrame(rows_path)
+                    unique_roads = [
+                        r for r in df_path["Road (to get here)"].unique()
+                        if r not in ("(start)", "—") and not r.startswith("(unnamed")
+                    ]
+                    if unique_roads:
+                        road_preview = ", ".join(unique_roads[:8])
+                        if len(unique_roads) > 8:
+                            road_preview += f", … ({len(unique_roads) - 8} more)"
+                        st.markdown(f"**Roads used:** {road_preview}")
+
                     st.dataframe(
-                        pd.DataFrame(rows_path),
+                        df_path,
                         use_container_width=True,
                         hide_index=True,
                         height=min(320, 38 + 35 * len(rows_path)),
