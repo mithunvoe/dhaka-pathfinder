@@ -33,7 +33,28 @@ st.set_page_config(
 st.markdown(
     """
     <style>
-    .stMetric { background: #fafafa; padding: 6px 10px; border-radius: 8px; }
+    [data-testid="stMetric"] {
+        background: linear-gradient(135deg, #1e293b 0%, #334155 100%) !important;
+        padding: 14px 18px !important;
+        border-radius: 10px !important;
+        border: 1px solid rgba(148, 163, 184, 0.25) !important;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25) !important;
+    }
+    [data-testid="stMetricLabel"],
+    [data-testid="stMetricLabel"] p,
+    [data-testid="stMetricLabel"] label,
+    [data-testid="stMetric"] label {
+        color: #cbd5e1 !important;
+        font-size: 13px !important;
+        font-weight: 500 !important;
+        opacity: 1 !important;
+    }
+    [data-testid="stMetricValue"],
+    [data-testid="stMetricValue"] div,
+    [data-testid="stMetricValue"] * {
+        color: #ffffff !important;
+        font-weight: 700 !important;
+    }
     .algo-badge {
         display: inline-block; padding: 2px 10px; border-radius: 999px;
         color: white; font-weight: 600; font-size: 13px;
@@ -168,6 +189,61 @@ if results:
         })
     df = pd.DataFrame(rows)
     st.dataframe(df, use_container_width=True, hide_index=True)
+
+    with st.expander("📍 Show the exact node sequence for each route", expanded=False):
+        st.caption(
+            "Every intermediate intersection each algorithm passes through. "
+            "Node IDs come from OpenStreetMap. Segment = physical length of "
+            "the road from the previous node. Cumulative = running total."
+        )
+        tab_labels = [ALGO_LABELS.get(a, a) for a, r in results.items() if r.path]
+        tab_keys = [a for a, r in results.items() if r.path]
+        if tab_keys:
+            tabs = st.tabs(tab_labels)
+            G = engine.graph
+            for tab, algo in zip(tabs, tab_keys):
+                with tab:
+                    r = results[algo]
+                    rows_path = []
+                    cum_m = 0.0
+                    for i, node in enumerate(r.path):
+                        lat, lon = engine.coords(node)
+                        if i == 0:
+                            seg_m = 0.0
+                            tag = "🟢 Source"
+                        else:
+                            prev = r.path[i - 1]
+                            seg_m = 0.0
+                            if G.has_edge(prev, node):
+                                seg_m = min(
+                                    float(G[prev][node][k].get("length", 0.0))
+                                    for k in G[prev][node]
+                                )
+                            tag = "🔴 Destination" if i == len(r.path) - 1 else ""
+                        cum_m += seg_m
+                        rows_path.append({
+                            "Step": i + 1,
+                            "Node ID": int(node),
+                            "Lat": round(lat, 6),
+                            "Lon": round(lon, 6),
+                            "Segment (m)": round(seg_m, 1),
+                            "Cumulative (m)": round(cum_m, 1),
+                            "Marker": tag,
+                        })
+                    st.caption(
+                        f"**{len(r.path)} intersections**, "
+                        f"**{r.stats.path_length_edges} road segments**, "
+                        f"**{r.stats.path_length_meters/1000:.2f} km total**, "
+                        f"realistic cost **{r.stats.path_cost:,.1f}**."
+                    )
+                    st.dataframe(
+                        pd.DataFrame(rows_path),
+                        use_container_width=True,
+                        hide_index=True,
+                        height=min(320, 38 + 35 * len(rows_path)),
+                    )
+        else:
+            st.info("No successful paths to list.")
 
     col_map, col_panel = st.columns([3, 1])
 
