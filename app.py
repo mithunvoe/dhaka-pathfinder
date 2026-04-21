@@ -7,16 +7,13 @@ Run:
 from __future__ import annotations
 
 import logging
-from pathlib import Path
 
-import folium
-import numpy as np
 import pandas as pd
 import streamlit as st
 from streamlit_folium import st_folium
 
 from dhaka_pathfinder.algorithms import ALGORITHMS
-from dhaka_pathfinder.config import DHAKA_CENTER, LANDMARKS
+from dhaka_pathfinder.config import LANDMARKS
 from dhaka_pathfinder.context import TravelContext
 from dhaka_pathfinder.engine import DhakaPathfinderEngine, EngineConfig
 from dhaka_pathfinder.heuristics import HEURISTIC_FACTORIES, HEURISTIC_INFO
