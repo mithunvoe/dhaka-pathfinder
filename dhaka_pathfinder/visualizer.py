@@ -184,35 +184,108 @@ def plot_comparison_bars(df: pd.DataFrame, output_path: Path) -> Path:
 
 
 def plot_heuristic_matrix(df: pd.DataFrame, output_path: Path) -> Path:
-    """Heatmap: rows = algorithms, cols = heuristics, cells = median path_cost."""
-    sns.set_theme(style="white", context="talk")
-    pivot = df.pivot_table(
-        index="algorithm", columns="heuristic", values="path_cost", aggfunc="median"
+    """Heatmap of median path cost across (algorithm × heuristic).
+
+    Only includes algorithms that actually USE a heuristic (the informed three)
+    so the "n/a" column doesn't steal half the figure, and drops DFS whose
+    enormous cost would dominate the color scale otherwise.
+    """
+    sns.set_theme(style="white", context="notebook")
+    sub = df[(df["heuristic"].notna()) & (df["heuristic"] != "n/a")]
+    sub = sub[sub["algorithm"].isin(["astar", "greedy", "weighted_astar"])]
+    if sub.empty:
+        fig, ax = plt.subplots(figsize=(8, 3))
+        ax.text(0.5, 0.5, "no informed-search data", ha="center")
+        ax.set_axis_off()
+        fig.savefig(output_path, dpi=130, bbox_inches="tight")
+        plt.close(fig)
+        return output_path
+
+    pivot = sub.pivot_table(index="algorithm", columns="heuristic", values="path_cost", aggfunc="median")
+    pivot = pivot.rename(index={"astar": "A*", "greedy": "Greedy", "weighted_astar": "Weighted A* (w=1.8)"})
+    # Format annotations as compact k-strings (149282 → "149k")
+    annot = pivot.map(lambda v: "—" if pd.isna(v) else f"{v/1000:,.0f}k")
+
+    fig, ax = plt.subplots(figsize=(max(9, 1.6 * pivot.shape[1] + 3), 3.2))
+    sns.heatmap(
+        pivot, annot=annot, fmt="", cmap="viridis",
+        linewidths=0.5, linecolor="white",
+        cbar_kws={"label": "median realistic cost"},
+        annot_kws={"size": 11, "weight": "bold"},
+        ax=ax,
     )
-    fig, ax = plt.subplots(figsize=(max(8, 1.2 * pivot.shape[1] + 4), 5))
-    sns.heatmap(pivot, annot=True, fmt=".1f", cmap="viridis", ax=ax, cbar_kws={"label": "median cost"})
-    ax.set_title("Median path cost — algorithm × heuristic")
+    ax.set_title("Median realistic cost per informed algorithm × heuristic (lower is better)", pad=12)
+    ax.set_xlabel("")
+    ax.set_ylabel("")
+    ax.tick_params(axis="x", rotation=30, labelsize=10)
+    ax.tick_params(axis="y", rotation=0, labelsize=11)
     fig.tight_layout()
-    fig.savefig(output_path, dpi=130, bbox_inches="tight")
+    fig.savefig(output_path, dpi=150, bbox_inches="tight")
     plt.close(fig)
     return output_path
 
 
 def plot_context_sweep(df: pd.DataFrame, output_path: Path) -> Path:
-    """Facet grid: one subplot per context, algorithms as hue, cost on y."""
-    sns.set_theme(style="whitegrid", context="talk")
-    facet = sns.catplot(
-        data=df,
-        x="algorithm", y="path_cost", hue="algorithm",
-        col="time_bucket", row="vehicle",
-        kind="box", height=3, aspect=1.2, sharey=False,
-        legend=False,
+    """Two stacked panels: cost by vehicle × algorithm, cost by time_of_day × algorithm.
+
+    Rewritten (the previous grid had ~30 tiny sub-facets with overlapping labels).
+    Uses a logarithmic y-axis so DFS's outlier doesn't flatten the other series,
+    and drops DFS from the bar-chart side entirely to keep the useful algorithms
+    legible.
+    """
+    sns.set_theme(style="whitegrid", context="notebook")
+    sub = df[df["success"] & df["algorithm"].isin(["bfs", "ucs", "greedy", "astar", "weighted_astar"])].copy()
+    if sub.empty:
+        fig, ax = plt.subplots(figsize=(10, 4))
+        ax.text(0.5, 0.5, "No context sweep data", ha="center")
+        ax.set_axis_off()
+        fig.savefig(output_path, dpi=130)
+        plt.close(fig)
+        return output_path
+
+    algo_rename = {
+        "bfs": "BFS", "ucs": "UCS", "greedy": "Greedy",
+        "astar": "A*", "weighted_astar": "W-A*",
+    }
+    sub["algo"] = sub["algorithm"].map(algo_rename)
+    algo_order = ["BFS", "UCS", "Greedy", "A*", "W-A*"]
+
+    fig, axes = plt.subplots(2, 1, figsize=(13, 9))
+
+    veh_order = [v for v in ("walk", "rickshaw", "cng", "motorbike", "car", "bus") if v in sub["vehicle"].unique()]
+    sns.barplot(
+        data=sub, x="vehicle", y="path_cost", hue="algo",
+        order=veh_order, hue_order=algo_order,
+        estimator=np.median, errorbar=None,
+        palette="viridis", ax=axes[0],
     )
-    facet.set_xticklabels(rotation=35)
-    facet.figure.suptitle("Path cost across algorithm × (vehicle, time_of_day)", y=1.02, weight="bold")
-    facet.figure.tight_layout()
-    facet.figure.savefig(output_path, dpi=130, bbox_inches="tight")
-    plt.close(facet.figure)
+    axes[0].set_title("Median realistic cost by vehicle (per algorithm)")
+    axes[0].set_yscale("log")
+    axes[0].set_ylabel("cost (log scale)")
+    axes[0].set_xlabel("")
+    axes[0].legend(title="", loc="upper left", ncol=5, fontsize=10)
+
+    time_order = [t for t in (
+        "early_morning", "morning_rush", "midday", "afternoon",
+        "evening_rush", "evening", "late_night",
+    ) if t in sub["time_bucket"].unique()]
+    sns.barplot(
+        data=sub, x="time_bucket", y="path_cost", hue="algo",
+        order=time_order, hue_order=algo_order,
+        estimator=np.median, errorbar=None,
+        palette="viridis", ax=axes[1],
+    )
+    axes[1].set_title("Median realistic cost by time of day (per algorithm)")
+    axes[1].set_yscale("log")
+    axes[1].set_ylabel("cost (log scale)")
+    axes[1].set_xlabel("")
+    axes[1].tick_params(axis="x", rotation=25)
+    axes[1].legend(title="", loc="upper left", ncol=5, fontsize=10)
+
+    fig.suptitle("Context sweep — cost varies with vehicle and time of day", weight="bold", y=1.0)
+    fig.tight_layout()
+    fig.savefig(output_path, dpi=140, bbox_inches="tight")
+    plt.close(fig)
     return output_path
 
 
