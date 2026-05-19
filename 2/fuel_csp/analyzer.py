@@ -18,10 +18,15 @@ log = logging.getLogger(__name__)
 
 @dataclass
 class ExperimentConfig:
+    """Defaults are tuned to finish a full sweep in well under a minute while
+    still showing the exponential vs polynomial scaling story. Pass `--full`
+    to scripts/run_experiments.py for the slow, paper-grade matrix.
+    """
+
     sizes: tuple[int, ...] = (10, 20, 30, 40, 50)
-    seeds: tuple[int, ...] = (7, 13, 21, 42, 99)
-    time_budget_s: float = 6.0
-    min_conflicts_steps: int = 4000
+    seeds: tuple[int, ...] = (7, 13, 42)
+    time_budget_s: float = 1.5
+    min_conflicts_steps: int = 2000
     num_stations: int = 6
     num_slots: int = 6
 

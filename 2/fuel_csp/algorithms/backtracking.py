@@ -235,7 +235,14 @@ class _BTBase(Solver):
                         if used > problem.stations[val.station_id].stocks(var_v.fuel_type) + 1e-6:
                             continue
                 pruned.append(other)
-            if not pruned and problem.vehicles[j].priority >= var_v.priority:
+            # Only abort if we *just emptied* a higher-or-equal-priority
+            # variable's domain. If its domain was already empty before this
+            # forward-check (e.g. the vehicle is permanently unreachable from
+            # every compatible station), that's a pre-existing problem the
+            # COP graceful-skip path should handle — it has nothing to do
+            # with our current value choice.
+            was_nonempty = len(live_domains[j]) > 0
+            if not pruned and was_nonempty and problem.vehicles[j].priority >= var_v.priority:
                 return False
             live_domains[j] = pruned
         return True

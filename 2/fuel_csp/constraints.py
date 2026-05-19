@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections import defaultdict
 from dataclasses import dataclass
 
-from fuel_csp.problem import Assignment, Problem, euclid
+from fuel_csp.problem import Assignment, Problem
 
 
 @dataclass
@@ -24,7 +24,7 @@ def per_variable_feasible(problem: Problem, i: int, val: Assignment) -> bool:
     s = problem.stations[val.station_id]
     if s.stocks(v.fuel_type) < v.demand_liters:
         return False
-    if euclid(v.x, v.y, s.x, s.y) > v.range_km:
+    if problem.distance_km(i, val.station_id) > v.range_km:
         return False
     if not (s.open_slot <= val.slot_id < s.close_slot):
         return False
@@ -132,8 +132,7 @@ def objective(problem: Problem, assignment: dict[int, Assignment]) -> float:
             prio_penalty += v.priority * 5.0
             continue
         a = assignment[i]
-        s = problem.stations[a.station_id]
-        d = euclid(v.x, v.y, s.x, s.y)
+        d = problem.distance_km(i, a.station_id)
         total_dist += d
         total_wait += float(a.slot_id)
         if v.kind == "ambulance":

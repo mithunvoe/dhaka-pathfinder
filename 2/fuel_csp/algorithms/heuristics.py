@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from fuel_csp.problem import Assignment, Problem, euclid
+from fuel_csp.problem import Assignment, Problem
 
 
 def static_order(problem: Problem, unassigned: list[int]) -> int:
@@ -69,9 +69,7 @@ def lcv_sort(
                 ):
                     clash_count += 1
         # tie-break: prefer closer station and earlier slot
-        veh = problem.vehicles[i]
-        s = problem.stations[v.station_id]
-        tie = euclid(veh.x, veh.y, s.x, s.y) + 0.1 * v.slot_id
+        tie = problem.distance_km(i, v.station_id) + 0.1 * v.slot_id
         scored.append((clash_count, tie, v))
     scored.sort(key=lambda t: (t[0], t[1]))
     return [v for _, _, v in scored]
@@ -88,10 +86,8 @@ def cost_sort(
     far better COP solutions than raw input order at negligible runtime
     cost.
     """
-    v = problem.vehicles[i]
 
     def key(a: Assignment) -> tuple[float, int]:
-        s = problem.stations[a.station_id]
-        return (euclid(v.x, v.y, s.x, s.y) + 0.3 * a.slot_id, a.slot_id)
+        return (problem.distance_km(i, a.station_id) + 0.3 * a.slot_id, a.slot_id)
 
     return sorted(candidate_values, key=key)

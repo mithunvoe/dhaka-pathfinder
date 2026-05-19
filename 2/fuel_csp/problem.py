@@ -4,13 +4,24 @@ Formal CSP / COP definition for the urban fuel-crisis allocator.
 Variables  X  : one variable per vehicle (X = {x_1, ..., x_N})
 Domain    D_i : feasible (station_id, pump_id, slot_id) triples for vehicle i,
                 pre-filtered by compatibility, reachability, and time-window
-                hard-constraints (4.1.1, 4.1.2, 4.1.5).
+                hard-constraints.
 Constraints C : pump-exclusivity and supply-capacity are checked dynamically
                 during search (constraints.py).
 
-Soft objective J(S) (COP) is computed in objective.py. Algorithms that solve
-the CSP form ignore J(S); algorithms that solve the COP use it for ordering
-and for measuring solution quality.
+Soft objective J(S) (COP) is computed in constraints.py. Algorithms that
+solve the CSP form ignore J(S); algorithms that solve the COP use it for
+ordering and for measuring solution quality.
+
+This module supports **two equivalent backings** of the same problem:
+
+* **Synthetic** — vehicles/stations live on a flat (x, y) km grid.
+  Distances are Euclidean. Used for unit tests and offline experiments.
+* **Dhaka (real OSM)** — vehicles/stations carry (lat, lon) + an OSM
+  ``node_id``. Distances come from a precomputed road-distance matrix
+  built once when the ``Problem`` is constructed (see
+  ``fuel_csp/osm_data.py``). The solvers don't know the difference.
+
+The mode is determined by whether ``Problem.distance_matrix`` is set.
 """
 
 from __future__ import annotations
@@ -18,6 +29,8 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass, field
 from typing import Iterable
+
+import numpy as np
 
 FUEL_TYPES: tuple[str, ...] = ("petrol", "diesel", "octane")
 
@@ -42,7 +55,10 @@ PRIORITY: dict[str, int] = {
 class Vehicle:
     """A vehicle that needs refueling.
 
-    Coordinates are in an abstract Euclidean km grid (synthetic city).
+    ``x``/``y`` are an abstract km-grid in synthetic mode. In Dhaka mode
+    they hold the *same data* as ``lat``/``lon`` for back-compat code that
+    only reads x/y — distance is read from ``Problem.distance_matrix``
+    rather than computed from x/y.
     """
 
     vid: int
@@ -54,6 +70,9 @@ class Vehicle:
     demand_liters: float
     earliest_slot: int
     latest_slot: int
+    lat: float | None = None
+    lon: float | None = None
+    node_id: int | None = None
 
     @property
     def priority(self) -> int:
@@ -71,6 +90,10 @@ class Station:
     open_slot: int
     close_slot: int
     reserves: dict[str, float]  # liters available per fuel type
+    name: str = ""
+    lat: float | None = None
+    lon: float | None = None
+    node_id: int | None = None
 
     def stocks(self, fuel: str) -> float:
         return self.reserves.get(fuel, 0.0)
@@ -92,7 +115,9 @@ class Assignment:
 class Problem:
     """Container for a single CSP/COP instance.
 
-    The instance is immutable after construction; solver state lives elsewhere.
+    When ``distance_matrix`` is provided it is the **authoritative** distance
+    source — both per-variable reachability filtering and the COP objective
+    use it. Otherwise, distance falls back to Euclidean(x, y) in km.
     """
 
     vehicles: list[Vehicle]
@@ -107,10 +132,26 @@ class Problem:
             "unassigned": 100.0,
         }
     )
+    # Optional: (n_vehicles, n_stations) matrix of road metres.
+    # Set by Dhaka-grounded generators; left None by the synthetic one.
+    distance_matrix: np.ndarray | None = None
 
     @property
     def n(self) -> int:
         return len(self.vehicles)
+
+    @property
+    def mode(self) -> str:
+        return "dhaka" if self.distance_matrix is not None else "synthetic"
+
+    def distance_km(self, vehicle_id: int, station_id: int) -> float:
+        """Vehicle-to-station distance in kilometres (km), regardless of mode."""
+        if self.distance_matrix is not None:
+            metres = float(self.distance_matrix[vehicle_id, station_id])
+            return metres / 1000.0
+        v = self.vehicles[vehicle_id]
+        s = self.stations[station_id]
+        return euclid(v.x, v.y, s.x, s.y)
 
     def build_domains(self) -> None:
         """Construct each variable's domain after applying per-variable hard constraints."""
@@ -122,7 +163,7 @@ class Problem:
         for s in self.stations:
             if s.stocks(v.fuel_type) < v.demand_liters:
                 continue
-            if euclid(v.x, v.y, s.x, s.y) > v.range_km:
+            if self.distance_km(i, s.sid) > v.range_km:
                 continue
             slot_lo = max(v.earliest_slot, s.open_slot)
             slot_hi = min(v.latest_slot, s.close_slot - 1)

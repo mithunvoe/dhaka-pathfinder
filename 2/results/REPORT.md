@@ -11,7 +11,7 @@ For every (algorithm, N, seed) we recorded:
 * `failure_rate` — fraction of vehicles left unassigned (0 = full CSP-feasible).
 * `success` — strictly true iff a complete + feasible assignment was found.
 
-Each cell is averaged across 5 seeds at each problem size N.
+Each cell is averaged across 3 seeds at each problem size N.
 
 ## 2. Per-(algorithm, N) summary
 
@@ -19,31 +19,31 @@ Each cell is averaged across 5 seeds at each problem size N.
 
 | algorithm | n | runtime_s_mean | nodes_mean | backtracks_mean | objective_mean | failure_rate_mean | success_rate |
 |---|---|---|---|---|---|---|---|
-| basic_backtracking | 10 | 0.8 | 6.75e+04 | 6.75e+04 | 194 | 0.02 | 0.8 |
-| bt_fc_mrv_deg | 10 | 0.00637 | 55.4 | 47.4 | 510 | 0.2 | 0.8 |
-| bt_lcv | 10 | 0.803 | 3.64e+04 | 3.64e+04 | 262 | 0.02 | 0.8 |
-| bt_mrv | 10 | 0.8 | 5.23e+04 | 5.23e+04 | 199 | 0.02 | 0.8 |
-| min_conflicts | 10 | 0.000104 | 0.2 | 0 | 328 | 0.02 | 0.8 |
-| basic_backtracking | 20 | 0.801 | 2.84e+04 | 2.84e+04 | 458 | 0.02 | 0.8 |
-| bt_fc_mrv_deg | 20 | 0.0208 | 108 | 91.8 | 1.07e+03 | 0.2 | 0.8 |
-| bt_lcv | 20 | 0.808 | 2.32e+04 | 2.32e+04 | 496 | 0.02 | 0.8 |
-| bt_mrv | 20 | 0.801 | 3.26e+04 | 3.26e+04 | 430 | 0.02 | 0.8 |
-| min_conflicts | 20 | 0.00118 | 2.8 | 0 | 543 | 0.02 | 0.8 |
-| basic_backtracking | 30 | 2.4 | 2e+05 | 2e+05 | 928 | 0.0533 | 0.4 |
-| bt_fc_mrv_deg | 30 | 0.0751 | 293 | 275 | 2.76e+03 | 0.4 | 0.6 |
-| bt_lcv | 30 | 2.41 | 5.58e+04 | 5.58e+04 | 1.36e+03 | 0.16 | 0.4 |
-| bt_mrv | 30 | 1.6 | 5.07e+04 | 5.07e+04 | 859 | 0.0467 | 0.6 |
-| min_conflicts | 30 | 0.0051 | 8.4 | 0 | 954 | 0.0467 | 0.6 |
-| basic_backtracking | 40 | 4 | 3.73e+05 | 3.73e+05 | 1.79e+03 | 0.14 | 0 |
-| bt_fc_mrv_deg | 40 | 0.0956 | 422 | 398 | 3.76e+03 | 0.4 | 0.6 |
-| bt_lcv | 40 | 1.62 | 3.44e+04 | 3.44e+04 | 1.2e+03 | 0.035 | 0.6 |
-| bt_mrv | 40 | 1.64 | 5.46e+04 | 5.45e+04 | 1.07e+03 | 0.035 | 0.6 |
-| min_conflicts | 40 | 1.55 | 1.78e+03 | 0 | 1.22e+03 | 0.04 | 0.4 |
-| basic_backtracking | 50 | 4 | 3.88e+05 | 3.88e+05 | 3.59e+03 | 0.296 | 0 |
-| bt_fc_mrv_deg | 50 | 1.74 | 2.25e+04 | 2.24e+04 | 5.13e+03 | 0.448 | 0.2 |
-| bt_lcv | 50 | 3.21 | 5.07e+04 | 5.07e+04 | 4.16e+03 | 0.42 | 0.2 |
-| bt_mrv | 50 | 2.4 | 2.46e+05 | 2.45e+05 | 3.78e+03 | 0.324 | 0.2 |
-| min_conflicts | 50 | 4 | 3.16e+03 | 0 | 2.14e+03 | 0.116 | 0 |
+| basic_backtracking | 10 | 0.000193 | 20.7 | 10.7 | 109 | 0 | 1 |
+| bt_fc_mrv_deg | 10 | 0.00292 | 10 | 0 | 76.6 | 0 | 1 |
+| bt_lcv | 10 | 0.00269 | 11 | 1 | 154 | 0 | 1 |
+| bt_mrv | 10 | 0.000231 | 24.3 | 14.3 | 117 | 0 | 1 |
+| min_conflicts | 10 | 7.62e-05 | 0 | 0 | 220 | 0 | 1 |
+| basic_backtracking | 20 | 0.000581 | 78.7 | 58.7 | 318 | 0 | 1 |
+| bt_fc_mrv_deg | 20 | 0.00969 | 20 | 0 | 247 | 0 | 1 |
+| bt_lcv | 20 | 0.0098 | 32.7 | 12.7 | 415 | 0 | 1 |
+| bt_mrv | 20 | 0.000811 | 98 | 78 | 332 | 0 | 1 |
+| min_conflicts | 20 | 0.00108 | 2.67 | 0 | 493 | 0 | 1 |
+| basic_backtracking | 30 | 0.501 | 2.49e+04 | 2.49e+04 | 846 | 0.0444 | 0.667 |
+| bt_fc_mrv_deg | 30 | 0.0663 | 261 | 241 | 2.29e+03 | 0.333 | 0.667 |
+| bt_lcv | 30 | 1.01 | 2.77e+04 | 2.77e+04 | 1.65e+03 | 0.233 | 0.333 |
+| bt_mrv | 30 | 0.501 | 2.06e+04 | 2.06e+04 | 831 | 0.0444 | 0.667 |
+| min_conflicts | 30 | 0.00373 | 6.67 | 0 | 956 | 0.0444 | 0.667 |
+| basic_backtracking | 40 | 1.5 | 1.77e+05 | 1.77e+05 | 1.63e+03 | 0.117 | 0 |
+| bt_fc_mrv_deg | 40 | 0.0912 | 384 | 358 | 3.24e+03 | 0.333 | 0.667 |
+| bt_lcv | 40 | 0.521 | 1.02e+04 | 1.02e+04 | 1.19e+03 | 0.0333 | 0.667 |
+| bt_mrv | 40 | 0.502 | 1.92e+04 | 1.91e+04 | 998 | 0.0333 | 0.667 |
+| min_conflicts | 40 | 0.565 | 820 | 0 | 1.09e+03 | 0.0333 | 0.667 |
+| basic_backtracking | 50 | 1.5 | 1.67e+05 | 1.67e+05 | 3.54e+03 | 0.293 | 0 |
+| bt_fc_mrv_deg | 50 | 0.612 | 6.84e+03 | 6.8e+03 | 4.34e+03 | 0.353 | 0.333 |
+| bt_lcv | 50 | 1.02 | 1.35e+04 | 1.35e+04 | 4.19e+03 | 0.433 | 0.333 |
+| bt_mrv | 50 | 0.502 | 6.96e+04 | 6.96e+04 | 4.44e+03 | 0.4 | 0.333 |
+| min_conflicts | 50 | 1.5 | 1.5e+03 | 0 | 1.82e+03 | 0.08 | 0 |
 
 ## 3. Algorithm-level aggregates
 
@@ -51,11 +51,11 @@ Each cell is averaged across 5 seeds at each problem size N.
 
 | algorithm | runtime_s | nodes | backtracks | constraint_checks | objective | failure_rate | success_rate |
 |---|---|---|---|---|---|---|---|
-| basic_backtracking | 2.4 | 2.11e+05 | 2.11e+05 | 2.11e+05 | 1.39e+03 | 0.106 | 0.4 |
-| bt_fc_mrv_deg | 0.387 | 4.67e+03 | 4.65e+03 | 4.67e+03 | 2.65e+03 | 0.33 | 0.6 |
-| bt_lcv | 1.77 | 4.01e+04 | 4.01e+04 | 4.01e+04 | 1.5e+03 | 0.131 | 0.56 |
-| bt_mrv | 1.45 | 8.71e+04 | 8.71e+04 | 8.71e+04 | 1.27e+03 | 0.0891 | 0.6 |
-| min_conflicts | 1.11 | 989 | 0 | 990 | 1.04e+03 | 0.0485 | 0.52 |
+| basic_backtracking | 0.7 | 7.37e+04 | 7.37e+04 | 7.37e+04 | 1.29e+03 | 0.0909 | 0.533 |
+| bt_fc_mrv_deg | 0.156 | 1.5e+03 | 1.48e+03 | 1.5e+03 | 2.04e+03 | 0.204 | 0.733 |
+| bt_lcv | 0.511 | 1.03e+04 | 1.03e+04 | 1.03e+04 | 1.52e+03 | 0.14 | 0.667 |
+| bt_mrv | 0.301 | 2.19e+04 | 2.19e+04 | 2.19e+04 | 1.34e+03 | 0.0956 | 0.733 |
+| min_conflicts | 0.414 | 466 | 0 | 467 | 915 | 0.0316 | 0.667 |
 
 ## 4. Plots
 

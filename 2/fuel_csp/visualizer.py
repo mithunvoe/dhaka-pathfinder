@@ -111,36 +111,54 @@ def plot_failure_rate(df: pd.DataFrame, out: Path) -> Path:
 
 
 def plot_heuristic_bars(df: pd.DataFrame, out: Path) -> Path:
-    """One bar per algorithm: mean runtime, mean backtracks, mean J(S)."""
+    """One bar per algorithm: mean runtime, mean backtracks, mean J(S).
+
+    Uses horizontal bars so the algorithm names (some are quite long) have
+    plenty of room and never collide.
+    """
     summary = df.groupby("algorithm").agg(
         runtime=("runtime_seconds", "mean"),
         backtracks=("backtracks", "mean"),
         objective=("objective", "mean"),
     ).reset_index()
-    fig, axes = plt.subplots(1, 3, figsize=(18, 6))
+    fig, axes = plt.subplots(1, 3, figsize=(22, 7.5))
     metrics = [
         ("runtime", "Mean runtime (s)", "Runtime"),
         ("backtracks", "Mean backtracks", "Backtracks"),
-        ("objective", "Mean J(S)", "Objective"),
+        ("objective", "Mean J(S)  (lower is better)", "Objective"),
     ]
-    for ax, (col, ylabel, title) in zip(axes, metrics):
-        x = [PRETTY.get(a, a) for a in ALGO_ORDER if a in summary["algorithm"].values]
-        y = [
+    algos = [a for a in ALGO_ORDER if a in summary["algorithm"].values]
+    labels = [PRETTY.get(a, a) for a in algos]
+    colors = [PALETTE.get(a) for a in algos]
+    # Plot top-to-bottom in our preferred order
+    y_pos = np.arange(len(algos))[::-1]
+
+    for ax, (col, xlabel, title) in zip(axes, metrics):
+        values = [
             summary.loc[summary["algorithm"] == a, col].values[0]
-            for a in ALGO_ORDER if a in summary["algorithm"].values
+            for a in algos
         ]
-        colors = [PALETTE.get(a) for a in ALGO_ORDER if a in summary["algorithm"].values]
-        bars = ax.bar(x, y, color=colors, edgecolor="black")
-        ax.set_ylabel(ylabel)
-        ax.set_title(title)
-        ax.tick_params(axis="x", rotation=20)
-        for b, val in zip(bars, y):
+        bars = ax.barh(y_pos, values, color=colors, edgecolor="black")
+        ax.set_yticks(y_pos)
+        ax.set_yticklabels(labels, fontsize=12)
+        ax.set_xlabel(xlabel, fontsize=12)
+        ax.set_title(title, fontsize=14, pad=10)
+        ax.grid(axis="x", alpha=0.35)
+        # Numeric label at the end of every bar; pad so it doesn't clip
+        xmax = max(values) if values else 1.0
+        ax.set_xlim(0, xmax * 1.18 if xmax > 0 else 1.0)
+        for bar, v in zip(bars, values):
             ax.text(
-                b.get_x() + b.get_width() / 2, b.get_height(),
-                f"{val:.2g}", ha="center", va="bottom", fontsize=10,
+                bar.get_width() + xmax * 0.015,
+                bar.get_y() + bar.get_height() / 2,
+                f"{v:.3g}",
+                va="center", ha="left", fontsize=11, color="#1f2937",
             )
-    fig.suptitle("Per-algorithm aggregates (averaged across all N and seeds)", y=1.02)
-    fig.tight_layout()
+    fig.suptitle(
+        "Per-algorithm aggregates  (averaged across all N and seeds)",
+        y=1.0, fontsize=15,
+    )
+    fig.tight_layout(rect=(0, 0, 1, 0.96))
     out.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out, dpi=140, bbox_inches="tight")
     plt.close(fig)

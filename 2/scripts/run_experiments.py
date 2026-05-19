@@ -40,16 +40,28 @@ console = Console()
 
 def main() -> None:
     p = argparse.ArgumentParser()
-    p.add_argument("--sizes", default="10,20,30,40,50")
-    p.add_argument("--seeds", default="7,13,21,42,99")
-    p.add_argument("--time-budget", type=float, default=6.0)
+    p.add_argument("--sizes", default="10,20,30,40,50",
+                   help="comma-separated problem sizes (vehicles)")
+    p.add_argument("--seeds", default="7,13,42",
+                   help="comma-separated random seeds")
+    p.add_argument("--time-budget", type=float, default=1.5,
+                   help="per-run wall-clock cap in seconds")
+    p.add_argument("--full", action="store_true",
+                   help="paper-grade sweep: 5 seeds × 5 sizes × 6 s budget (~3 min)")
     args = p.parse_args()
 
-    cfg = ExperimentConfig(
-        sizes=tuple(int(x) for x in args.sizes.split(",")),
-        seeds=tuple(int(x) for x in args.seeds.split(",")),
-        time_budget_s=args.time_budget,
-    )
+    if args.full:
+        cfg = ExperimentConfig(
+            sizes=(10, 20, 30, 40, 50),
+            seeds=(7, 13, 21, 42, 99),
+            time_budget_s=6.0,
+        )
+    else:
+        cfg = ExperimentConfig(
+            sizes=tuple(int(x) for x in args.sizes.split(",")),
+            seeds=tuple(int(x) for x in args.seeds.split(",")),
+            time_budget_s=args.time_budget,
+        )
 
     results = PROJECT_ROOT / "results"
     plots = results / "plots"

@@ -20,7 +20,7 @@ from time import perf_counter
 
 from fuel_csp.algorithms.base import Solver, SolverResult, Timer
 from fuel_csp.constraints import conflicts, objective, total_conflicts
-from fuel_csp.problem import Assignment, Problem, euclid
+from fuel_csp.problem import Assignment, Problem
 
 
 class MinConflictsSolver(Solver):
@@ -120,13 +120,11 @@ class MinConflictsSolver(Solver):
         dom = problem.domains[vid]
         if not dom:
             return None
-        v = problem.vehicles[vid]
         best_val: Assignment | None = None
         best_key: tuple[int, float] = (10**9, 10**9)
         for val in dom:
             c = conflicts(problem, assignment, vid, val)
-            s = problem.stations[val.station_id]
-            d = euclid(v.x, v.y, s.x, s.y) + 0.3 * val.slot_id
+            d = problem.distance_km(vid, val.station_id) + 0.3 * val.slot_id
             key = (c, d)
             if key < best_key:
                 best_key = key

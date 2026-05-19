@@ -10,9 +10,15 @@ if ! command -v uv >/dev/null 2>&1; then
     exit 1
 fi
 
-uv sync --quiet
+# Drop any inherited VIRTUAL_ENV so uv reliably uses ./.venv. The user
+# might have activated a different venv before invoking this script.
+unset VIRTUAL_ENV
+
+# --all-extras installs both runtime and dev deps (pytest, jupyter, nbformat).
+uv sync --all-extras --quiet
 
 case "${1:-help}" in
+    ui)        exec uv run streamlit run app.py "${@:2}" ;;
     test)      exec uv run pytest tests/ "${@:2}" ;;
     cli)       exec uv run python -m fuel_csp.cli "${@:2}" ;;
     experiments) exec uv run python scripts/run_experiments.py "${@:2}" ;;
@@ -23,11 +29,12 @@ case "${1:-help}" in
                uv run python scripts/run_experiments.py
                uv run python scripts/generate_report.py
                uv run python scripts/build_notebook.py
-               echo "Done. See results/ and notebooks/." ;;
+               echo "Done. See results/ and notebooks/. Launch the UI with ./run.sh ui" ;;
     *)
         cat <<'HELP'
 fuel-csp — usage
 
+./run.sh ui              Launch the interactive Streamlit UI (map + metrics)
 ./run.sh test            Run unit tests
 ./run.sh cli <args>      Direct CLI passthrough
 ./run.sh solve <args>    Solve one instance (algorithm, N, seed)
