@@ -16,6 +16,7 @@ from __future__ import annotations
 
 from time import perf_counter
 
+from fuel_csp.algorithms.arc_consistency import ac3
 from fuel_csp.algorithms.base import Solver, SolverResult, SolverStats, Timer
 from fuel_csp.algorithms.heuristics import (
     cost_sort,
@@ -49,6 +50,7 @@ class _BTBase(Solver):
     """Engine shared by all four backtracking configurations."""
 
     use_forward_checking: bool = False
+    use_ac3: bool = False
 
     def solve(self, problem: Problem) -> SolverResult:
         stats = self._new_stats(problem)
@@ -59,6 +61,8 @@ class _BTBase(Solver):
             "assignment": {},
         }
         live_domains = [list(d) for d in problem.domains]
+        if self.use_ac3:
+            ac3(live_domains)
         t0 = perf_counter()
 
         with Timer(stats):
@@ -308,6 +312,7 @@ class BacktrackingForwardChecking(_BTBase):
 
     name = "bt_fc_mrv_deg"
     use_forward_checking = True
+    use_ac3 = True
 
     def _select_var(
         self,
