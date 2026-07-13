@@ -1,0 +1,8 @@
+# Lab 3 - Population-Based / Swarm Intelligence
+# Only standard, stable scientific libraries (per assignment constraints).
+numpy>=1.26,<2.0
+matplotlib>=3.6
+scipy>=1.11
+pandas>=2.1
+pytest>=7.0        # tests only
+streamlit>=1.30       # the UI (app.py) only

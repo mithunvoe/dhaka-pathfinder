@@ -1,0 +1,104 @@
+% Artificial Intelligence Lab Report -- compile with pdfLaTeX and BibTeX
+\documentclass{ai-lab-report}
+
+% ---------- Student details ----------
+\title{Use your title}
+\reportemail{your.email@example.com}
+\author{Your Full Name}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This report presents three Artificial Intelligence laboratory assignments. Briefly state the overall problem, the techniques you implemented, the experiments you conducted, and the main findings. The abstract should help a reader understand what to expect from the report without reading the remaining sections.
+\end{abstract}
+
+\keywords{Artificial Intelligence; search; learning; laboratory work}
+\vspace{5mm}
+\hline
+\section{Introduction}
+Introduce the broader AI problem space and motivate the three assignments together. Explain why these tasks are important, how they connect (or not) to one another, and what you aim to demonstrate through the implementations and experiments. End with a concise outline of the report.
+
+\section{Literature Review}
+This section reviews the theoretical foundations and the progression of relevant work, from early foundational methods to current state-of-the-art approaches, for the three assignments. Explain where your implementation lies within this development: whether it reproduces a classical method, adapts an established technique, or compares selected approaches under a controlled setting. Since this is laboratory work, the objective is not necessarily to outperform state-of-the-art systems; instead, the discussion should clarify what the experiment demonstrates, which design choices it examines, and how its results relate to the strengths, limitations, and evaluation practices reported in the literature. Use reliable textbooks, research papers, and official documentation to support the discussion.
+Sample website citation format \citep{sklearnUserGuide}.
+
+\subsection{Assignment 1: \placeholder{Short assignment title}}
+Introduce the domain and central problem addressed in Assignment 1. Discuss the relevant AI concepts, classical or recent approaches, and the assumptions behind them. Briefly compare alternative methods where appropriate and explain the evaluation criteria commonly used in prior work. Support important claims with appropriate citations.
+
+\subsection{Assignment 2: \placeholder{Short assignment title}}
+Review the literature relevant to Assignment 2. Explain the key concepts, representative algorithms or models, and important design choices reported in earlier work. Discuss why certain approaches may be suitable for the problem and identify any known limitations. Cite sources that directly support the discussion.
+
+\subsection{Assignment 3: \placeholder{Short assignment title}}
+Review the relevant literature for Assignment 3. Discuss the problem setting, standard solution techniques, and evaluation practices. Where useful, compare this assignment with the methods or concepts used in Assignments 1 and 2, supported by appropriate citations.
+
+\subsection{Literature Review Summary and Experimental Focus}
+In summary, the reviewed literature shows that AI problems can be addressed through systematic search, knowledge representation, and learning-based methods, depending on the nature of the task and available data \citep{russell2021ai,bishop2006prml}. Existing work also highlights the importance of selecting appropriate evaluation measures and carefully analysing model errors \citep{sklearnUserGuide}.
+
+Based on these insights, this report focuses specifically on \placeholder{the selected algorithm or AI technique} for solving \placeholder{the target problem}. The experiment evaluates its performance in terms of \placeholder{accuracy, execution time, path cost, number of explored states, or another appropriate metric}.
+
+\section{Assignment 1: \placeholder{Short assignment title}}
+
+\subsection{Problem Formulation}
+Clearly define the problem addressed in this assignment. State the input, expected output, assumptions, constraints, and objective. Where appropriate, express the problem mathematically and define all variables and notation.
+
+\subsection{Methodology}
+Describe the proposed approach in a logical sequence. Include the algorithm or model, data or input preparation, implementation details, parameter settings, software tools, and experimental setup. Use equations, pseudocode, figures, tables, and code excerpts where useful.
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[
+    node distance=1.6cm,
+    every node/.style={
+      draw,
+      rounded corners,
+      align=center,
+      minimum width=2.2cm,
+      minimum height=0.75cm,
+      fill=blue!5
+    },
+    >=Latex
+  ]
+    \node (input) {Input};
+    \node (method) [right=of input] {AI Method};
+    \node (output) [right=of method] {Output};
+    \draw[->,thick] (input) -- (method);
+    \draw[->,thick] (method) -- (output);
+  \end{tikzpicture}
+  \caption{Replace this placeholder with the workflow of Assignment 1.}
+  \label{fig:workflow}
+\end{figure}
+
+\subsection{Results and Discussion}
+Present the experimental results using suitable tables, figures, or examples. Interpret the findings in relation to the literature and the objective defined in the problem formulation. Discuss comparisons with a baseline or expected behaviour, error cases, limitations, and possible improvements.
+
+\section{Assignment 2: \placeholder{Short assignment title}}
+
+\subsection{Problem Formulation}
+Define the problem, including its input, output, objective, assumptions, and constraints. Explain the specific aspect of the problem investigated in the experiment.
+
+\subsection{Methodology}
+Describe the approach used for Assignment 2, including the algorithm or model, data, preprocessing, implementation details, parameter settings, software tools, and evaluation procedure.
+
+\subsection{Results and Discussion}
+Present and interpret the results of Assignment 2. Relate the findings to the literature review, compare relevant alternatives where possible, and discuss notable observations, failure cases, and limitations.
+
+\section{Assignment 3: \placeholder{Short assignment title}}
+
+\subsection{Problem Formulation}
+Define the problem, including its input, output, objective, assumptions, and constraints. Clearly state the experimental focus.
+
+\subsection{Methodology}
+Describe the approach used for Assignment 3, including the algorithm or model, data, preprocessing, implementation details, parameter settings, software tools, and evaluation procedure.
+
+\subsection{Results and Discussion}
+Present and interpret the results of Assignment 3. Relate the findings to the literature review, compare relevant alternatives where possible, and discuss notable observations, failure cases, and limitations.
+
+\section{Conclusions}
+Summarize the most important findings from all three assignments. State what you learned, the main limitations of the work, and one or two concrete directions for improvement or future work.
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\end{document}

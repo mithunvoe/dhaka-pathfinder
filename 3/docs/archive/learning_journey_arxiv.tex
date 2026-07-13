@@ -1,0 +1,249 @@
+% =====================================================================
+% LEARNING JOURNEY — cumulative arXiv-ready blueprint (Labs 1–4)
+% CSEDU AI Lab sequence.  Compile with pdflatex + bibtex.
+%
+% AUTHORSHIP POLICY (assignment requirement):
+%   Authors are STUDENTS ONLY. The course instructor's name must NOT
+%   appear in \author{} or the acknowledgements-as-authorship. An
+%   ordinary "we thank ..." acknowledgement of guidance is acceptable;
+%   listing the instructor as a co-author/collaborator is NOT.
+% =====================================================================
+\documentclass[11pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{siunitx}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage[hidelinks]{hyperref}
+\usepackage{xcolor}
+\newcommand{\TODO}[1]{\textcolor{red}{[\textbf{TODO:} #1]}}
+\newcommand{\PH}[1]{\textcolor{blue}{$\langle$#1$\rangle$}}   % placeholder
+
+\title{\textbf{A Learning Journey Through Classical and Nature-Inspired
+Search:\\ From Informed Pathfinding to Swarm-Optimised Facility Placement}}
+
+% --- STUDENT-ONLY AUTHOR BLOCK (instructor deliberately omitted) ---
+\author{
+  \PH{Student One Full Name}\thanks{\PH{Dept. of CSE, University of Dhaka;
+  email}} \and
+  \PH{Student Two Full Name (if applicable)}
+}
+\date{\PH{Month Year}}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\PH{150--250 word abstract. State that this paper is a cumulative report of a
+four-lab sequence on search and optimization. Name the four problem classes
+(informed search, constraint satisfaction, population-based / swarm
+optimization, and \PH{Lab 4 topic}), the running Dhaka/DU application thread,
+and the headline quantitative result of each lab. End with the central lesson:
+matching the solver to the structure of the search landscape. Include the Lab~3
+headline: a from-scratch PSO improves weighted Wi-Fi coverage from
+\SI{87.4}{\percent} (random search, matched budget) to \SI{89.9}{\percent},
+Wilcoxon $p<10^{-4}$.}
+\end{abstract}
+
+% =====================================================================
+\section{Introduction}
+\label{sec:intro}
+\PH{2--3 paragraphs. Motivate the journey: each lab attacks a harder or
+structurally different search problem, and each teaches when a given algorithmic
+family is (and is not) the right tool. State contributions:
+(i) a consistent methodology (from-scratch implementation, matched-budget
+baselines, statistical validation) applied across four labs;
+(ii) a Dhaka/DU-grounded problem in each lab;
+(iii) a cross-lab synthesis on landscape–solver fit.}
+
+\paragraph{Running application thread.}
+\PH{One paragraph: all four labs are grounded in University of Dhaka / Dhaka
+city infrastructure, so the journey doubles as a case study in localising
+generic AI methods.}
+
+% =====================================================================
+\section{Methodological Commitments (constant across all labs)}
+\label{sec:method}
+\begin{itemize}
+  \item \textbf{From scratch.} Every core algorithm is implemented with only
+        \texttt{numpy}/\texttt{matplotlib}/\texttt{scipy}; no black-box
+        optimization frameworks, so every line is defensible.
+  \item \textbf{Matched-budget baselines.} Each learned/heuristic method is
+        compared against a baseline under an \emph{identical} computational
+        budget (equal node expansions / constraint checks / fitness
+        evaluations).
+  \item \textbf{Statistical validation.} Stochastic methods are run over
+        multiple seeds; differences are tested (e.g., Wilcoxon signed-rank,
+        Friedman) rather than asserted from a single run.
+  \item \textbf{Reproducibility.} Fixed seeds, pinned dependencies, scripted
+        runners.
+\end{itemize}
+
+% =====================================================================
+\section{Literature Review}
+\label{sec:litreview}
+\PH{This section aggregates the per-lab literature reviews. For Lab~3 in
+particular, the survey spans the following application domains of
+population/swarm optimization (see the Lab~3 dossier, Part~2, for the full
+annotated table of 12 applications with encodings, fitness functions,
+constraint handling, and reported metrics). Keep one short paragraph per
+domain and cite the strongest paper in each.}
+
+\subsection{Medicine, Genomics, and Bioinformatics}\PH{cite}
+\subsection{Aerospace Engineering and Structural Design}\PH{cite}
+\subsection{Energy Systems, Smart Grids, and Power Optimization}\PH{cite}
+\subsection{Robotics, Autonomous Systems, and Path Planning}\PH{cite}
+\subsection{Deep Learning NAS and Hyperparameter Optimization}\PH{cite}
+\subsection{Next-Gen Wireless (5G/6G) and Edge Computing}\PH{cite}
+\subsection{Multi-Modal Logistics and Resource Scheduling}\PH{cite}
+
+% =====================================================================
+\section{Lab 1 --- \PH{Informed Search / Dhaka Pathfinding}}
+\label{sec:lab1}
+\paragraph{Problem.} \PH{1--2 sentences.}
+\paragraph{Method.} \PH{algorithm(s), heuristic design.}
+\paragraph{What was implemented.} \PH{modules, from scratch.}
+\paragraph{Results.} \PH{key numbers vs baseline (e.g., Dijkstra / uniform-cost).}
+\paragraph{What was discovered.} \PH{2--3 bullet insights.}
+\paragraph{How it fed forward.} \PH{how this shaped Lab 2.}
+
+% =====================================================================
+\section{Lab 2 --- \PH{Constraint Satisfaction}}
+\label{sec:lab2}
+\paragraph{Problem.} \PH{1--2 sentences.}
+\paragraph{Method.} \PH{backtracking, AC-3 arc consistency, heuristics (MRV/LCV).}
+\paragraph{What was implemented.} \PH{from scratch.}
+\paragraph{Results.} \PH{search-node / constraint-check reductions vs naive backtracking.}
+\paragraph{What was discovered.} \PH{propagation vs. search trade-off.}
+\paragraph{How it fed forward.} \PH{constraint-handling ideas reused as penalty
+/ repair operators in Lab 3.}
+
+% =====================================================================
+\section{Lab 3 --- Population-Based / Swarm Optimisation
+        (Wi-Fi AP Placement)}
+\label{sec:lab3}
+This lab is fully realised (the others above are templated). It is reproduced
+here in publishable form.
+
+\subsection{Problem}
+Place $K$ Wi-Fi access points on a University of Dhaka residential-hall floor
+$[0,W]\times[0,H]$ to maximise occupancy-weighted room coverage under a
+minimum-separation (co-channel) rule and floor boundaries. Reference instance:
+$W\times H = \SI{60}{\metre}\times\SI{40}{\metre}$, $N=40$ jittered rooms with
+occupancy weights, three interior concrete partitions, and a tight budget of
+$K=3$ APs (search space $\mathbb{R}^{6}$).
+
+\subsection{Method}
+A from-scratch inertia-weight Particle Swarm Optimizer~\cite{kennedy1995,
+shi1998}. A particle is the flat vector of AP coordinates
+$\mathbf{x}=[a^x_0,a^y_0,\dots]\in\mathbb{R}^{2K}$; the velocity update is
+\begin{equation}
+\mathbf{v}\leftarrow w\,\mathbf{v}
+  + c_1 r_1(\mathbf{p}_{\text{best}}-\mathbf{x})
+  + c_2 r_2(\mathbf{g}_{\text{best}}-\mathbf{x}),\qquad
+\mathbf{x}\leftarrow\mathbf{x}+\mathbf{v},
+\end{equation}
+with linearly decayed inertia $w:0.9\!\to\!0.4$, $c_1=c_2=1.49445$, and velocity
+clamping. The objective is
+\begin{equation}
+F(\mathbf{x}) = 100\cdot\frac{\sum_i w_i\,\sigma\!\big((\max_j \mathrm{RSSI}_{ij}-\tau)/s\big)}{\sum_i w_i}
+  \;-\;\lambda_{\text{sep}}\!\!\sum_{j<k}\big[\max(0,d_{\min}-\lVert\mathbf{a}_j-\mathbf{a}_k\rVert)\big]^2,
+\end{equation}
+with $\mathrm{RSSI}_{ij}=P_{\text{tx}}-(L_0+10n\log_{10}\max(d_{ij},1))-\gamma c_{ij}$
+(log-distance path loss; $c_{ij}$ = wall crossings). Boundaries are handled by
+clamping (repair); separation by penalty.
+
+\subsection{Experimental setup}
+Swarm $P=30$, iterations $T=100$ (budget $P(T{+}1)=3030$ fitness evaluations),
+15 independent seeds. Baselines at the \emph{identical} budget: Random Search
+(3030 samples) and an exhaustive coarse Grid Search
+($\binom{25}{3}=2300$ site combinations).
+
+\subsection{Results}
+\begin{table}[h]\centering
+\caption{Wi-Fi placement: PSO vs matched-budget baselines (weighted coverage
+\%; mean over 15 runs).}
+\begin{tabular}{lccc}
+\toprule
+Method & Evals/run & Mean fitness & Std \\
+\midrule
+PSO (ours)   & 3030 & \textbf{89.91} & 0.26 \\
+Random Search& 3030 & 87.43 & 0.43 \\
+Grid Search  & 2300 & 89.46 & 0.00 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+PSO beats Random by \SI{2.83}{\percent} weighted coverage; the advantage is
+significant under a one-sided Wilcoxon signed-rank test ($p=\num{3.05e-5}$). PSO
+also exceeds the exhaustive coarse grid because the jittered optimum lies
+off-grid — a continuous-search advantage. See \autoref{fig:lab3}.
+
+\begin{figure}[h]\centering
+% \includegraphics[width=.48\textwidth]{../results/plots/convergence.png}
+% \includegraphics[width=.48\textwidth]{../results/plots/spatial_swarm.png}
+\caption{Left: convergence (PSO overtakes both baselines). Right: floor coverage
+heatmap with the swarm global-best trajectory settling into a spread layout.
+\PH{uncomment includegraphics when compiling}}
+\label{fig:lab3}
+\end{figure}
+
+\subsection{What was discovered}
+\begin{itemize}
+  \item Under a tight AP budget, \emph{placement} dominates: random layouts
+        strand the far/ shadowed rooms; smart spread recovers $\sim$2.8 points.
+  \item PSO's variance ($\sigma=0.26$) is far below Random's ($0.43$):
+        reliability, not just mean quality.
+  \item Grid Search cannot scale — a fine enough grid needs
+        $\binom{G}{K}\!\gg\!$ budget — a concrete curse-of-dimensionality lesson.
+\end{itemize}
+
+% =====================================================================
+\section{Lab 4 --- \PH{topic}}
+\label{sec:lab4}
+\PH{Same template: Problem / Method / Implemented / Results / Discovered /
+Fed-forward. Reserve space for the fourth lab of the sequence.}
+
+% =====================================================================
+\section{Cross-Lab Synthesis: matching the solver to the landscape}
+\label{sec:synthesis}
+\PH{The intellectual spine of the report. Argue the progression:
+(1) Lab 1 informed search exploits an \emph{admissible heuristic} on a graph with
+known structure; (2) Lab 2 CSP exploits \emph{constraint propagation} to prune;
+(3) Lab 3 swarm optimization abandons gradients/structure entirely for a
+\emph{black-box, non-differentiable, multimodal} landscape; (4) Lab 4 \PH{...}.
+Tie back to the No Free Lunch theorem: no single method dominates — the journey
+is about reading the landscape and choosing accordingly. Note how
+constraint-handling ideas (Lab 2) reappear as penalty/repair operators (Lab 3).}
+
+% =====================================================================
+\section{Conclusion}
+\label{sec:conclusion}
+\PH{Recap the four headline results and the central lesson. State the
+deliverable: this arXiv paper is the final artifact of the lab sequence.}
+
+\section*{Acknowledgements}
+\PH{Optional. You MAY thank the course/instructor for guidance here in prose;
+you may NOT list the instructor as an author. Keep this section non-authorial.}
+
+% =====================================================================
+\begin{thebibliography}{99}
+\bibitem{kennedy1995} J.~Kennedy and R.~Eberhart, ``Particle Swarm
+Optimization,'' \emph{Proc. IEEE ICNN'95}, vol.~4, pp.~1942--1948, 1995.
+doi:10.1109/ICNN.1995.488968.
+\bibitem{shi1998} Y.~Shi and R.~Eberhart, ``A Modified Particle Swarm
+Optimizer,'' \emph{Proc. IEEE ICEC}, pp.~69--73, 1998.
+\bibitem{holland1975} J.~H.~Holland, \emph{Adaptation in Natural and Artificial
+Systems}. Univ.\ of Michigan Press, 1975.
+\bibitem{dorigo1996} M.~Dorigo, V.~Maniezzo, A.~Colorni, ``Ant System,''
+\emph{IEEE Trans. SMC-B}, vol.~26(1), pp.~29--41, 1996.
+\bibitem{wolpert1997} D.~H.~Wolpert and W.~G.~Macready, ``No Free Lunch Theorems
+for Optimization,'' \emph{IEEE Trans. Evol. Comput.}, vol.~1(1), pp.~67--82, 1997.
+\PH{Add the 12 Part-2 application citations and the Lab 1/2/4 references here.}
+\end{thebibliography}
+
+\end{document}

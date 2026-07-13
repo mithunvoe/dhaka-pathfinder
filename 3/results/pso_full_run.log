@@ -1,0 +1,45 @@
+====================================================================
+ DU HALL-FLOOR Wi-Fi ACCESS-POINT PLACEMENT  -  PSO from scratch
+====================================================================
+ Floor: 60m x 40m | rooms: 40 | APs (K): 3 | dims: 6
+ Shared budget/run: 3030 fitness evals (PSO 30x100+init) | runs: 15
+--------------------------------------------------------------------
+ BEST SOLUTION (representative traced run)
+   AP0:  x =  11.61 m ,  y = 23.63 m
+   AP1:  x =  35.49 m ,  y =  8.32 m
+   AP2:  x =  40.67 m ,  y = 28.66 m
+ Best fitness (objective) : 90.006
+ Hard coverage of rooms   : 100.0 %
+ Convergence stagnated at : iteration 79 / 100
+--------------------------------------------------------------------
+ PERFORMANCE COMPARISON  (identical fitness-evaluation budget)
+       Method  Evals/run  Best fitness  Mean fitness      Std  Hard cover %
+   PSO (ours)       3030        90.006        89.905    0.257       100.000
+Random Search       3030        88.294        87.433    0.432        97.500
+  Grid Search       2300        89.459        89.459    0.000       100.000
+--------------------------------------------------------------------
+ PSO mean beats Random by  : +2.83 %
+ Wilcoxon signed-rank test : W = 120.0, p = 3.05e-05  (H1: PSO > Random)
+ Verdict                   : SIGNIFICANT (p < 0.05)
+ Wall-clock: PSO 7.60s | Random 8.23s
+--------------------------------------------------------------------
+ COLLECTIVE BEHAVIOUR ABLATION  (identical budget of 3030 evaluations throughout)
+                         Variant  Particles  Iters  Evals  Mean fitness      Std
+                     swarm =   1          1   3030   3030        76.781    6.659
+                     swarm =   2          2   1515   3030        88.024    2.671
+                     swarm =   5          5    606   3030        89.957    0.179
+                     swarm =  10         10    303   3030        89.804    0.336
+                     swarm =  15         15    202   3030        89.953    0.200
+                     swarm =  30         30    101   3030        89.905    0.257
+                     swarm = 101        101     30   3030        89.737    0.351
+                     swarm = 303        303     10   3030        89.547    0.269
+swarm =  30, c2 = 0 (no sharing)         30    101   3030        87.299    1.151
+
+ One particle, all 3030 evals to itself : 76.781
+ Thirty particles that never communicate  : 87.299
+ Thirty particles that share gbest        : 89.905
+ -> sharing is worth +2.607 fitness at ZERO extra cost;
+    the swarm beats the lone searcher by +13.124.
+====================================================================
+ Plots written to results/plots/ : convergence.png, spatial_swarm.png,
+                                   diversity.png, collective_behaviour.png
