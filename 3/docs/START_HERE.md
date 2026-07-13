@@ -181,10 +181,13 @@ Do them in this order. Do not start with PART1, it will drown you.
    is the single most useful file here the night before.
 5. **`PART5_code_defense.md`** — line-by-line: "he points at the screen and asks *this*, you
    say *that*."
-6. **`PART1_foundations.md`** (swarm theory) and **`PART6_decision_making.md`** (MDP theory) —
+6. **`PART7_literature_applied.md`** — read this if he asks "did you actually read the papers?".
+   It lists, paper by paper, which line of code changed because of it, and names the two papers
+   that caught us claiming something false.
+7. **`PART1_foundations.md`** (swarm theory) and **`PART6_decision_making.md`** (MDP theory) —
    the deep background. Read these only if you want to be able to go one level deeper than the
    question asked. They are reference material, not a tutorial.
-7. **`PART4_problem_design.md`** — the problems we considered and rejected. Useful if he asks
+8. **`PART4_problem_design.md`** — the problems we considered and rejected. Useful if he asks
    "why this problem and not something else?".
 
 ---

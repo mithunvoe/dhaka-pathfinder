@@ -116,6 +116,19 @@ best-known position and the best position found by anyone. \citet{shi1998inertia
 inertia weight $w$ that lets the swarm start broad and finish fine, and that is the form
 taught in the course and used here.
 
+Two later refinements matter for what we actually built. \citet{clerc2002particle} replace the
+inertia weight with a constriction factor $\chi \approx 0.7298$ derived from a stability analysis
+of the particle trajectory, and \citet{eberhart2000comparing} find it outperforms the inertia
+weight on standard benchmarks --- though, contrary to a common misreading, they retain velocity
+clamping alongside it. We use the inertia weight because it is the form taught in the course;
+comparing the two on our landscape is an experiment we did not run.
+
+More consequentially, \citet{kennedy2002population} show that \emph{who talks to whom} is a
+design variable in its own right. Comparing seventy topologies, they conclude that greater
+connectivity speeds convergence without improving the swarm's ability to find global optima, and
+that too little connectivity leaves particles "wandering cluelessly". That claim is testable on
+our problem, and Section~\ref{sec:a3a-results} tests it.
+
 The theoretical backstop is the No Free Lunch theorem \citep{wolpert1997nfl}: averaged over
 all possible objective functions, every optimiser performs identically. So the interesting
 question is never "is PSO good", it is "is PSO good \emph{on this landscape}, and can I
@@ -138,11 +151,23 @@ step-size schedule matters a great deal in practice: a polynomial rate $\alpha_n
 with $\omega \in (0.5, 1]$ converges, while a constant $\alpha$ converges only to a
 neighbourhood of $Q^*$. \citet{sutton2018rl} is the standard reference for all of this.
 
+Between the two sits model-based RL: estimate the transition model from experience, then plan on
+the estimate. \citet{sutton1990integrated} introduced this as Dyna, interleaving real experience
+with simulated experience drawn from a learned model. The batch, one-shot version --- build the
+maximum-likelihood MDP from all your samples and solve it exactly --- is certainty equivalence,
+and it is the third arm of our Part~B experiment. Recent theory makes its advantage precise:
+\citet{agarwal2020modelbased} prove the plug-in estimator is minimax optimal at
+$\tilde{\Theta}(|S||A|/((1-\gamma)^3\varepsilon^2))$, while \citet{li2024qlearning} show vanilla
+tabular Q-learning is stuck at $\tilde{\Theta}(|S||A|/((1-\gamma)^4\varepsilon^2))$ and is
+therefore strictly sub-optimal. That gap of $1/(1-\gamma)$ is the theoretical shape of our main
+empirical result.
+
 Pump scheduling under uncertainty is an active application area
 \citep{hajgato2020drlpumps, hu2023marlpumps, pei2025pumpscheduling}, though that work uses deep
-RL on large water-distribution networks and is chasing scale. Our problem is deliberately
-small enough that Value Iteration can compute the exact optimum, which is what lets us measure
-every other method's regret against ground truth instead of against another approximation.
+RL on large water-distribution networks and is chasing scale. We deliberately went the other
+way: our problem is small enough that Value Iteration can compute the exact optimum, which is
+what lets us measure every other method's regret against ground truth instead of against another
+approximation.
 
 \subsection{Literature Review Summary and Experimental Focus}
 The reviewed literature shows AI problems being attacked through systematic search,
@@ -507,6 +532,48 @@ means no information to share; too many means too few iterations to use it. Five
 particles is the sweet spot here (89.95), and 303 particles --- which leaves only 10 iterations
 --- falls back to 89.55.
 
+\paragraph{How much should they talk?}
+Having established that communication matters, the obvious next question is whether \emph{more}
+of it is better, and here the literature makes a specific prediction.
+\citet{kennedy2002population} compare seventy swarm topologies and conclude that "greater
+connectivity speeds up convergence, though it does not tend to improve the population's ability
+to discover global optima" --- their fully-connected swarm reached its criterion in a median of
+404.8 iterations but only 85\% of the time, against a ring's 755.5 iterations and 94\%. They
+also warn that inhibiting communication too far leaves particles "wandering cluelessly", which
+is precisely our $c_2 = 0$ result.
+
+We implemented a ring topology, in which each particle hears only its immediate neighbours
+around a circle, so a good discovery has to walk around the ring one hop per iteration instead
+of being broadcast instantly. Over 30 paired seeds at the same budget:
+
+\begin{table}[H]
+\centering
+\caption{Communication topology. Same 30 particles, same 3{,}030 evaluations. The only thing
+that changes is who can hear whom.}
+\label{tab:a3topo}
+\begin{tabular}{lrrr}
+\toprule
+Topology & Mean & Std & Stagnates at \\
+\midrule
+No communication ($c_2 = 0$) & 87.30 & 1.151 & iter 53 \\
+Fully connected (\emph{gbest}) & 89.83 & 0.317 & iter \textbf{83} \\
+Ring, $k = 1$ & 89.96 & \textbf{0.129} & iter \textbf{100} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The result is not the one we first wrote down. Our initial draft reported that the ring was
+simply better; a unit test asserting that failed on a different set of seeds, which was the
+correct outcome. Tested properly, the mean difference is \textbf{not significant} (Wilcoxon,
+$p = 0.92$) while the variance difference \textbf{is}, by a factor of six ($F$-test,
+$p = 6 \times 10^{-6}$). The fully-connected swarm quits at iteration 83; the ring is still
+improving when the budget runs out.
+
+So the ring does not find a \emph{better} answer. It finds a \emph{consistent} one. That is
+exactly what \citet{kennedy2002population} predict, and it is worth being careful about what
+they do \emph{not} say: they rank the ring 64th of the 70 topologies they tried and recommend a
+von Neumann lattice instead. We have not tried that, and it is the obvious next experiment.
+
 % =====================================================================
 \subsection{Part B --- Problem Formulation: the hall water tank under load-shedding}
 The same hall keeps its water in an overhead tank fed by an electric pump. Three things make
@@ -672,6 +739,32 @@ Myopic greedy ($\gamma = 0$)        & the model, but no future         & 120.6\%
 \bottomrule
 \end{tabular}
 \end{table}
+
+\paragraph{Why does the learned model beat the learner by ten times?}
+We had this measurement before we had an explanation for it, and the explanation turns out to be
+a proved separation rather than a quirk of our hall. \citet{agarwal2020modelbased} show that the
+plug-in (certainty-equivalence) estimator --- build $\hat{P}$ from samples, plan optimally in the
+empirical MDP --- is \emph{minimax optimal}, attaining
+$\tilde{\Theta}\bigl(|S||A| / ((1-\gamma)^3\varepsilon^2)\bigr)$.
+\citet{li2024qlearning} settle vanilla synchronous Q-learning at
+$\tilde{\Theta}\bigl(|S||A| / ((1-\gamma)^4\varepsilon^2)\bigr)$ and state that this "unveils the
+strict sub-optimality of Q-learning when $|A| \geq 2$".
+
+The gap is a full factor of $1/(1-\gamma)$ in the effective horizon. We chose $\gamma = 0.99$, so
+that factor is \textbf{100}. The theory predicts our Q-learner should be about two orders of
+magnitude behind in sample efficiency purely because of the discount, and a ten-fold regret gap
+at a fixed 720{,}000 samples is what that looks like from the inside.
+
+The mechanism is not mysterious once stated: a Q-learning update spends a transition on one cell
+of the table and then discards it, whereas a learned model \emph{stores} it and every subsequent
+Bellman backup re-reads it, so one sample propagates across the whole state space instead of into
+the single cell where it landed.
+
+One caveat we will not drop, because it is the difference between a true claim and a sloppy one:
+this separation is against \emph{vanilla tabular} Q-learning, not against model-free RL in
+general --- variance-reduced Q-learning variants do reach the optimal rate. (We also note that we
+nearly cited \citet{azar2013minimax} for this. It does not support the claim: its lower bound is
+information-theoretic and binds model-free methods equally.)
 
 So the honest conclusion inverts the one we went looking for:
 

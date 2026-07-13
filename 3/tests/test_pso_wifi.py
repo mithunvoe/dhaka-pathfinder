@@ -134,3 +134,92 @@ def test_pso_beats_random_on_average(problem, cfg):
     pso = ParticleSwarmOptimizer(problem, cfg, seed=6).optimize()["best_fitness"]
     rnd = random_search(problem, cfg, seed=6)["best_fitness"]
     assert pso >= rnd
+
+
+# ---------------------------------------------------------------------
+# Communication topology (Kennedy & Mendes 2002)
+#
+# The swarm's social term pulls each particle towards the best point it can
+# HEAR. Who it can hear is a design choice, and the literature says that choice
+# matters in a specific direction. These tests pin down the mechanism; the
+# empirical claim is measured in collective_behaviour_study().
+# ---------------------------------------------------------------------
+from dataclasses import replace
+
+from pso_wifi_placement import collective_behaviour_study, topology_significance
+
+
+def test_ring_neighbourhood_is_a_circle():
+    """Particle i must hear exactly i-k..i+k, wrapping around the ends."""
+    cfg = replace(Config(), swarm_size=6, topology="ring", ring_k=1)
+    opt = ParticleSwarmOptimizer(WifiFloorProblem(cfg), cfg, seed=0)
+    assert opt.neighbours.shape == (6, 3)
+    assert sorted(opt.neighbours[0]) == [0, 1, 5]     # wraps backwards
+    assert sorted(opt.neighbours[5]) == [0, 4, 5]     # wraps forwards
+    assert sorted(opt.neighbours[2]) == [1, 2, 3]
+
+
+def test_fully_connected_swarm_has_no_neighbourhood_table():
+    cfg = Config()
+    opt = ParticleSwarmOptimizer(WifiFloorProblem(cfg), cfg, seed=0)
+    assert opt.neighbours is None                     # everyone hears everyone
+
+
+def test_ring_social_attractor_is_local_not_global():
+    """The point of the ring: a particle is pulled towards the best thing IN ITS
+    NEIGHBOURHOOD, which may be nowhere near the swarm's actual best. If this
+    ever returned gbest we would have silently re-implemented gbest."""
+    cfg = replace(Config(), swarm_size=6, topology="ring", ring_k=1)
+    problem = WifiFloorProblem(cfg)
+    opt = ParticleSwarmOptimizer(problem, cfg, seed=0)
+
+    pbest = np.arange(6 * cfg.n_dims, dtype=float).reshape(6, cfg.n_dims)
+    pbest_fit = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 99.0])   # particle 5 is the star
+    gbest = pbest[5]
+
+    attractor = opt._social_attractor(pbest, pbest_fit, gbest)
+
+    # Particles 4, 5 and 0 are the only ones adjacent to the star, so only they
+    # should be pulled towards it. Particle 2 is on the far side of the ring and
+    # must NOT have heard about it yet.
+    assert np.allclose(attractor[4], pbest[5])
+    assert np.allclose(attractor[0], pbest[5])
+    assert not np.allclose(attractor[2], pbest[5])
+
+
+def test_talking_beats_silence():
+    """The load-bearing claim of Part A. Thirty particles that share must beat
+    thirty that do not, at an identical budget."""
+    cfg = Config()
+    problem = WifiFloorProblem(cfg)
+    df = collective_behaviour_study(problem, cfg, [30], n_runs=5)
+    topo = df[df["Kind"] == "topology"].set_index("Variant")
+    assert (topo.loc["fully connected (gbest)", "Mean fitness"]
+            > topo.loc["no communication (c2 = 0)", "Mean fitness"])
+
+
+def test_ring_is_steadier_not_better():
+    """The Kennedy & Mendes (2002) prediction, stated precisely enough to fail.
+
+    Their finding is that "greater connectivity speeds up convergence, though it
+    does not tend to improve the population's ability to discover global optima".
+    So the ring should be MORE CONSISTENT and slower to give up - and should NOT
+    reliably find a better optimum.
+
+    An earlier version of this test asserted the ring had a better mean. It
+    failed, correctly: on 30 paired seeds the mean difference is not significant
+    (Wilcoxon p = 0.92) while the variance ratio is (F-test p = 6e-06). The paper
+    predicted exactly that, and the test now says so.
+    """
+    cfg = Config()
+    problem = WifiFloorProblem(cfg)
+    sig = topology_significance(problem, cfg, n_runs=12)
+
+    # The spread is where the effect lives.
+    assert sig["ring"].std() < sig["gbest"].std()
+    assert sig["var_ratio"] > 1.5
+
+    # And the mean is where it does NOT. We assert only that the ring is not
+    # meaningfully WORSE - claiming it is better is the mistake this test exists
+    # to prevent.
+    assert sig["ring"].mean() > sig["gbest"].mean() - 0.5

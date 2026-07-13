@@ -29,8 +29,22 @@ identical 3,030 fitness-evaluation budget:
 | **30 particles sharing one `gbest`** | **89.91 ± 0.26** |
 
 Thirty independent searchers that do not talk are worth no more than throwing 3,030 darts.
-Restore a single shared number and the same thirty agents, at the same cost, gain 2.83%
+Restore a single shared number and the same thirty agents, at the same cost, gain 2.47 points
 (Wilcoxon *p* = 3.05e-05) and connect every room in the hall instead of stranding one.
+
+But *more* communication is not better, which is a result we took from
+[Kennedy & Mendes (2002)](docs/PART7_literature_applied.md) and then had to be corrected by:
+
+| topology (same 30 particles, same budget) | mean | std | stagnates |
+|---|---|---|---|
+| fully connected (`gbest`) | 89.83 | 0.317 | iter **84** |
+| ring, k=1 | 89.96 | **0.129** | iter **98** |
+
+Over 30 paired seeds the mean difference is **not significant** (Wilcoxon *p* = 0.92) but the
+variance is — the ring is **6× steadier** (F-test *p* = 6e-06) and is still improving when the
+fully-connected swarm has already quit. The ring does not find a *better* answer; it finds a
+*consistent* one. That is exactly what the paper predicts, and our first draft got it wrong by
+claiming "better".
 
 **Part B — we set out to prove something and the data said no.** The plan was to show that
 Q-learning beats a planner working from Dhaka's optimistic published load-shedding schedule.
@@ -105,7 +119,8 @@ be able to defend every line.
 │   ├── PART3_viva.md          # viva prep, both parts
 │   ├── PART4_problem_design.md# the problems we considered and rejected, both parts
 │   ├── PART5_code_defense.md  # code-to-theory map + "he points at the screen" questions
-│   └── PART6_decision_making.md # MDP theory: Bellman, contraction, Q-learning convergence
+│   ├── PART6_decision_making.md # MDP theory: Bellman, contraction, Q-learning convergence
+│   └── PART7_literature_applied.md # which papers changed which line, and the 2 that corrected us
 └── results/
     ├── plots/
     ├── tables/

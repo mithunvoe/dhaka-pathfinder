@@ -21,25 +21,41 @@ Random Search       3030        88.294        87.433    0.432        97.500
  PSO mean beats Random by  : +2.83 %
  Wilcoxon signed-rank test : W = 120.0, p = 3.05e-05  (H1: PSO > Random)
  Verdict                   : SIGNIFICANT (p < 0.05)
- Wall-clock: PSO 7.60s | Random 8.23s
+ Wall-clock: PSO 7.49s | Random 8.18s
 --------------------------------------------------------------------
  COLLECTIVE BEHAVIOUR ABLATION  (identical budget of 3030 evaluations throughout)
-                         Variant  Particles  Iters  Evals  Mean fitness      Std
-                     swarm =   1          1   3030   3030        76.781    6.659
-                     swarm =   2          2   1515   3030        88.024    2.671
-                     swarm =   5          5    606   3030        89.957    0.179
-                     swarm =  10         10    303   3030        89.804    0.336
-                     swarm =  15         15    202   3030        89.953    0.200
-                     swarm =  30         30    101   3030        89.905    0.257
-                     swarm = 101        101     30   3030        89.737    0.351
-                     swarm = 303        303     10   3030        89.547    0.269
-swarm =  30, c2 = 0 (no sharing)         30    101   3030        87.299    1.151
+                  Variant  Particles  Iters  Evals  Mean fitness      Std  Stagnates at
+              swarm =   1          1   3030   3030        76.781    6.659       212.533
+              swarm =   2          2   1515   3030        88.024    2.671       402.467
+              swarm =   5          5    606   3030        89.957    0.179       273.067
+              swarm =  10         10    303   3030        89.804    0.336       164.333
+              swarm =  15         15    202   3030        89.953    0.200       125.267
+              swarm =  30         30    101   3030        89.905    0.257        82.600
+              swarm = 101        101     30   3030        89.737    0.351        28.800
+              swarm = 303        303     10   3030        89.547    0.269         8.600
+no communication (c2 = 0)         30    101   3030        87.383    1.001        56.300
+  fully connected (gbest)         30    101   3030        89.882    0.279        83.533
+              ring, k = 1         30    101   3030        89.991    0.029        98.500
+              ring, k = 3         30    101   3030        90.005    0.003        96.267
 
- One particle, all 3030 evals to itself : 76.781
- Thirty particles that never communicate  : 87.299
- Thirty particles that share gbest        : 89.905
- -> sharing is worth +2.607 fitness at ZERO extra cost;
-    the swarm beats the lone searcher by +13.124.
+ One particle, all 3030 evals to itself   : 76.781
+ Thirty particles that never communicate    : 87.383   (random search: 87.433)
+
+ -> Communication is worth +2.499 fitness at ZERO extra cost.
+    Without it, thirty searchers are worth no more than random sampling.
+    Kennedy & Mendes call this 'wandering cluelessly'; here it is, measured.
+
+ TOPOLOGY: fully connected vs sparse ring (30 paired seeds)
+   gbest  mean 89.831  sd 0.317   stagnates at iter 84
+   ring   mean 89.961  sd 0.129   stagnates at iter 98
+   Wilcoxon on the mean : p = 0.918   NOT significant - the ring does not find a BETTER optimum
+   F-test on the spread : 6.0x, p = 6.0e-06   SIGNIFICANT
+   -> The ring does not find a better answer. It finds a CONSISTENT one,
+      and it is still improving when the fully-connected swarm has quit.
+      Kennedy & Mendes (2002): 'greater connectivity speeds up convergence,
+      though it does not tend to improve the population's ability to
+      discover global optima.' That is what we measure. (They rank the ring
+      64th of 70 topologies and recommend von Neumann - see the report.)
 ====================================================================
  Plots written to results/plots/ : convergence.png, spatial_swarm.png,
                                    diversity.png, collective_behaviour.png
