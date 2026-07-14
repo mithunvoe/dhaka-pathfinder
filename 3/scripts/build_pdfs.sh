@@ -25,6 +25,7 @@ done
 # Documents in the order a human should read them, not alphabetical.
 # Format:  path | Title | Subtitle
 DOCS=(
+  "docs/PITCH.md                 | The Pitch                        | What to say, out loud, tomorrow"
   "docs/START_HERE.md            | Start Here                       | Assignment 3, from zero"
   "docs/MATH_EXPLAINED.md        | The Maths, Decoded               | Every equation, with real numbers"
   "statement.md                  | Formal Problem Statements        | Assignment 3, Parts A and B"

@@ -171,6 +171,8 @@ he asks "so why did you bother with Q-Learning?", that paragraph is your answer.
 
 Do them in this order. Do not start with PART1, it will drown you.
 
+0. **[`PITCH.md`](PITCH.md)** — if the viva is *tomorrow*, start there instead. It is the
+   run-of-show: what to say out loud, what to click, and every likely question answered.
 1. **This file.** Done.
 2. **`statement.md`** — the two problems written down formally, with the maths. Read it *after*
    you understand them informally, and the symbols will just be labels for things you already
