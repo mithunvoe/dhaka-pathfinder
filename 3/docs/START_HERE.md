@@ -175,6 +175,12 @@ Do them in this order. Do not start with PART1, it will drown you.
 2. **`statement.md`** — the two problems written down formally, with the maths. Read it *after*
    you understand them informally, and the symbols will just be labels for things you already
    know.
+
+   **If the maths in it looks like a wall, open [`MATH_EXPLAINED.md`](MATH_EXPLAINED.md) beside
+   it.** That file takes every equation in `statement.md`, names every symbol in plain English,
+   and then runs the formula with real numbers from our own hall so you can watch it compute.
+   Start with its section 0 — a table of what the symbols are *said out loud as*. Most of what
+   makes a formula frightening is notation, not ideas.
 3. **`../report/main.pdf`** — the actual submission. Sections 5 and 6 are Part A and Part B.
    Read the "Results and Discussion" bits first; skip the literature review on a first pass.
 4. **`PART3_viva.md`** — the question bank. This is what you rehearse from. It is long, and it

@@ -11,7 +11,7 @@ residential hall.
 | **Method** | Particle Swarm Optimization, from scratch | Value Iteration + Q-learning, from scratch |
 | **Code** | [`src/pso_wifi_placement.py`](src/pso_wifi_placement.py) | [`src/rl_water_tank.py`](src/rl_water_tank.py), [`src/rl_experiments.py`](src/rl_experiments.py) |
 
-The final report is [`report/main.pdf`](report/main.pdf) (16 pages, built from the
+The final report is [`report/main.pdf`](report/main.pdf) (18 pages, built from the
 instructor's template). It also covers Assignments 1 and 2 from `../1` and `../2`.
 
 ---
@@ -85,7 +85,7 @@ pip install -r requirements.txt
 ./run.sh swarm          # Part A: PSO + Random/Grid baselines + the collective ablation
 ./run.sh rl             # Part B: Value Iteration vs Q-learning     (~4 min)
 ./run.sh rl --quick     # Part B, fewer seeds and episodes          (~40 s)
-./run.sh test           # 37 unit tests
+./run.sh test           # 42 unit tests
 ./run.sh report         # compile report/main.pdf
 ```
 
@@ -103,17 +103,18 @@ be able to defend every line.
 3/
 ├── report/
 │   ├── main.tex               # the report, in the instructor's template
-│   ├── main.pdf               # 16 pages, covers Assignments 1, 2 and 3
+│   ├── main.pdf               # 18 pages, covers Assignments 1, 2 and 3
 │   ├── references.bib         # all citations verified against Crossref
 │   └── figures/
 ├── src/
 │   ├── pso_wifi_placement.py  # Part A: PSO, baselines, collective ablation
 │   ├── rl_water_tank.py       # Part B: the MDP, VI, Q-learning, certainty equivalence
 │   └── rl_experiments.py      # Part B: experiments, tables, figures
-├── tests/                     # 37 tests, including the model-vs-simulator parity gate
+├── tests/                     # 42 tests, including the model-vs-simulator parity gate
 ├── statement.md               # formal problem statements for both parts
 ├── docs/
 │   ├── START_HERE.md          # <-- read this first if you are new to the project
+│   ├── MATH_EXPLAINED.md      # <-- every equation in statement.md, decoded with real numbers
 │   ├── PART1_foundations.md   # swarm theory: NFL, explore/exploit, 8-algorithm comparison
 │   ├── PART2_applications.md  # 12 cited real-world applications
 │   ├── PART3_viva.md          # viva prep, both parts

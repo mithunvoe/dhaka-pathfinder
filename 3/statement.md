@@ -1,5 +1,11 @@
 # Formal Problem Statements — Assignment 3
 
+> **New to this, or the notation is hard going?** Read
+> [`docs/MATH_EXPLAINED.md`](docs/MATH_EXPLAINED.md) alongside this file. It decodes every
+> equation below symbol by symbol, in plain English, and runs each formula with real numbers
+> from our own hall so you can see it work. This file is deliberately written the compressed
+> way a report expects; that one is written the way you actually learn it.
+
 The assignment has two parts, and we chose two separate problems rather than forcing
 one problem to serve both. They share a setting: a University of Dhaka residential
 hall. Part A places its Wi-Fi. Part B runs its water pump.
