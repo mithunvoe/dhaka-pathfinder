@@ -25,8 +25,8 @@ Have open, in this order, ready to switch between:
 5. `results/plots/rl_model_mismatch.png`
 6. `report/main.pdf` — your fallback for any number you forget.
 
-**Put your name in `report/main.tex` lines 8–9 and rebuild.** It still says
-"Your Full Name".
+Your name and email are already in `report/main.tex` and the PDF is built. Nothing
+left to fill in.
 
 ---
 
@@ -91,7 +91,8 @@ Drag the iteration slider back and forth once. It looks good and it costs nothin
 > *"The assignment asked for a problem where one weak agent fails but many together
 > succeed. I didn't want to just assert that, so I tested it."*
 
-**Untick the box that says "Particles share their global best."** Hit run.
+**Untick the box that says "Particles share their global best."** It re-runs by
+itself — you do not need to press the button.
 
 > *"I've just set c2 to zero. That's the social term in the velocity update. The
 > thirty particles are still there. They still search. They still remember their own
@@ -112,7 +113,7 @@ Point at the two numbers on screen:
 > over 30 seeds. Over 30 seeds it's 87.38 against random's 87.43 — if anything the gap
 > is even smaller than what you're seeing."*
 
-Tick the box back on. Hit run.
+Tick the box back on. It re-runs by itself again.
 
 > *"Put one single number back — the global best — and the same thirty agents, at
 > exactly the same cost, jump to 89.9. And they now connect every room in the hall,

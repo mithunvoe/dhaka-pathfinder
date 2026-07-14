@@ -1,0 +1,80 @@
+==========================================================================
+ DU HALL WATER TANK  -  Value Iteration vs Q-Learning
+==========================================================================
+ States |S| = 1584  (level 11 x hour 24 x grid 2 x diesel 3)
+ Legal state-action pairs: 3432 of 4752 (PUMP_GRID needs the grid, PUMP_GEN needs diesel)
+ Transition matrix nnz = 39984  (0.531% dense)
+ gamma = 0.99  ->  effective horizon 1/(1-gamma) = 100 hours
+--------------------------------------------------------------------------
+ E1  VALUE ITERATION
+     converged in 2273 sweeps (0.21 s)
+     empirical contraction rate = 0.9900   (theory says exactly gamma = 0.99)
+     cross-check |V* - V^pi*|_inf = 1.81e-08  (VI agrees with the exact linear solve)
+     optimal value V* (mean over start states) = -163.637
+--------------------------------------------------------------------------
+ E2  DOES THIS PROBLEM ACTUALLY NEED LOOKAHEAD?
+                                 Policy    Exact V   Regret %   Cost/day  Shortage units/day  Diesel h/day  Dry hours/day
+              Value iteration (optimal)    -163.64       0.00      32.81                0.78          1.18           0.41
+Tuned caretaker rule (grid<9, diesel<3)    -187.38      14.51      36.85                0.94          1.11           0.52
+             Myopic greedy ($\gamma$=0)    -361.01     120.62      78.11                3.08          1.64           1.58
+                 Random (legal actions)    -697.47     326.23     166.34                6.85          2.00           3.19
+                            Always idle   -2507.78    1432.53     527.66               26.38          0.00          12.31
+
+     The formally-correct greedy policy loses 121%.
+     The best TUNED reactive threshold rule still loses 14.5%.
+     So the lookahead is doing real work - this is not a vacuous MDP.
+--------------------------------------------------------------------------
+ E3  LEARNING FROM EXPERIENCE  (5 seeds x 30,000 episodes x 24 h)
+     done in 81 s
+     state-action coverage reached: 100.0% of legal pairs
+     after 720,000 steps:
+       Q-learning              regret =  15.13 % +/- 2.36
+       Certainty-equiv. VI     regret =   1.43 % +/- 0.23   (SAME samples)
+     action-optimality of the learned Q-policy: 86.6% of states
+--------------------------------------------------------------------------
+ E4  HOW WRONG CAN THE PRIOR MODEL BE?
+ Believed outage rate (x truth)   Regret %
+                           2.00       1.54
+                           1.50       0.43
+                           1.25       0.11
+                           1.00       0.00
+                           0.75       0.24
+                           0.50       1.54
+                           0.35       2.10
+                           0.25       2.66
+                           0.10       6.66
+                           0.00      21.39
+
+     A prior model this wrong STILL beats Q-learning (15.13%): scales 0.1 .. 2.0
+     Certainty-equivalence VI (1.43%, learned from 720,000 samples):
+       beats a BADLY wrong prior : scales [0.0, 0.1, 0.25, 0.35, 0.5, 2.0]
+       LOSES to a mildly wrong one: scales [0.75, 1.25, 1.5]
+     => a roughly-right prior model is worth more than 82 simulated years
+        of experience. That is the finding, and it is not the one we expected.
+--------------------------------------------------------------------------
+ E5  HYPERPARAMETER SWEEP  (3 seeds x 8,000 episodes)
+     done in 109 s
+          Group                       Setting  Regret % (mean)  Regret % (std)
+  Learning rate       polynomial  1/(1+n)^0.7            25.07            2.10
+  Learning rate       polynomial  1/(1+n)^0.5            28.17            5.91
+  Learning rate        constant  alpha = 0.10            50.43            2.85
+  Learning rate        constant  alpha = 0.50            57.86            3.75
+    Exploration          epsilon floor = 0.01            30.59            5.69
+    Exploration          epsilon floor = 0.05            25.07            2.10
+    Exploration           epsilon floor = 0.2            27.51            5.31
+    Exploration          exploring starts OFF            76.73            7.04
+ Initialisation Q init = 0  (optimistic here)            25.07            2.10
+ Initialisation   Q init = -200 (pessimistic)            21.05            1.30
+Discount factor                   gamma = 0.9            19.54            1.44
+Discount factor                  gamma = 0.95            25.77            1.35
+Discount factor                  gamma = 0.99            25.07            2.10
+--------------------------------------------------------------------------
+ E6  EVIDENCE OF ANTICIPATION
+     12:00, tank 4/10, grid up:  pumping costs 0.97 MORE this hour,
+        but is worth +2.80 overall -> +3.77 of that comes purely from the FUTURE.
+     13:00, tank 4/10, grid up:  pumping costs 0.97 MORE this hour,
+        but is worth +3.55 overall -> +4.52 of that comes purely from the FUTURE.
+     14:00, tank 4/10, grid up:  pumping costs 0.97 MORE this hour,
+        but is worth +4.69 overall -> +5.66 of that comes purely from the FUTURE.
+==========================================================================
+ Figures -> results/plots/   Tables -> results/tables/

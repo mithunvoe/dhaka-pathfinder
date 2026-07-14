@@ -45,20 +45,57 @@ from rl_water_tank import (ACTION_NAMES, IDLE, PUMP_GEN, PUMP_GRID, HallWaterMDP
 
 st.set_page_config(page_title="AI Lab - Assignment 3", layout="wide")
 
+# One fixed seed for the whole demo.
+#
+# There used to be a "random seed" box here. It was a liability: it let the viewer
+# change the seed without re-running, which put the stored result and the widgets
+# out of step. It also invited the wrong idea - that a single run means anything.
+# It does not. The scientific claims in the report come from 15 or 30 SEEDED runs
+# with a Wilcoxon test, not from whatever one seed happened to do. The UI is here
+# to show the MECHANISM (turn communication off and watch the swarm collapse); the
+# statistics live in `./run.sh swarm`.
+DEMO_SEED = 1042
+
 
 # =====================================================================
 # Cached heavy lifting
 # =====================================================================
 @st.cache_resource
 def load_wifi():
+    """The floor GEOMETRY, for drawing: rooms, walls, weights.
+
+    Read-only. Never run an optimiser against this instance - see below.
+    """
     cfg = Config()
     return cfg, WifiFloorProblem(cfg)
+
+
+def fresh_problem(cfg: Config) -> WifiFloorProblem:
+    """A private problem instance, for one run only.
+
+    This exists because of a real bug. `WifiFloorProblem` carries a mutable
+    counter, `n_fitness_calls`, which is what lets us ASSERT that every method
+    gets exactly the same evaluation budget. That assertion is the backbone of
+    the whole Part A comparison, so it stays.
+
+    But Streamlit re-runs the whole script on every widget change, and a cached
+    (@st.cache_resource) problem is a singleton shared across those runs. Click
+    two controls faster than a run completes and two script runs increment the
+    SAME counter, so the assertion fires - not because the budget was violated,
+    but because two runs were counting into one box.
+
+    The instance is cheap to build (a seeded RNG and a meshgrid), and it is
+    deterministic, so every run gets an identical floor and its own private
+    counter. The fix is to not share mutable state, not to weaken the assert.
+    """
+    return WifiFloorProblem(cfg)
 
 
 @st.cache_data(show_spinner=False)
 def wifi_baselines(seed: int):
     """Random and Grid search at the same budget. Cached: they never change."""
-    cfg, problem = load_wifi()
+    cfg = Config()
+    problem = fresh_problem(cfg)          # its own counter, not the shared one
     rnd = random_search(problem, cfg, seed)
     grd = grid_search(problem, cfg)
     return rnd["best_fitness"], grd["best_fitness"]
@@ -158,7 +195,6 @@ def tab_swarm():
                             help="Untick this to set c2 = 0. The particles still search "
                                  "and still remember their own best. They simply stop "
                                  "telling each other anything.")
-        seed = st.number_input("Random seed", 0, 9999, 1042, step=1)
 
         iters = cfg.n_evals // size - 1
         st.caption(
@@ -166,29 +202,48 @@ def tab_swarm():
             f"With {size} particle{'s' if size > 1 else ''} that buys {iters + 1} "
             f"iterations. Fewer particles do not get less compute; they get more turns."
         )
-        run = st.button("Run the swarm", type="primary", use_container_width=True)
+        run = st.button("Run the swarm", type="primary", width="stretch")
 
-    if run or "pso" not in st.session_state:
+    # Recompute whenever the SETTINGS change, not only when the button is pressed.
+    #
+    # The previous version only recomputed on `run`, so changing a control without
+    # pressing the button left st.session_state holding a result from the OLD
+    # settings while the widgets showed the new ones. The iteration slider below is
+    # sized from that stored result, so a stale result with a different history
+    # length gave the slider a value outside its own range, and Streamlit threw.
+    # Keying the cache on the settings themselves removes the whole class of bug.
+    sig = (size, share, DEMO_SEED)
+    if run or st.session_state.get("pso_sig") != sig:
         variant = replace(cfg, swarm_size=size, n_iters=iters,
                           c2=cfg.c2 if share else 0.0)
-        problem.n_fitness_calls = 0
-        res = ParticleSwarmOptimizer(problem, variant, int(seed)).optimize(
+        # A PRIVATE problem for this run, so the evaluation counter cannot be
+        # clobbered by a concurrent re-run of the script. See fresh_problem().
+        run_problem = fresh_problem(cfg)
+        res = ParticleSwarmOptimizer(run_problem, variant, DEMO_SEED).optimize(
             record_trace=True, record_swarm=True)
-        assert problem.n_fitness_calls == variant.n_evals   # the budget really is matched
+        # The budget really is matched, and we check it rather than claim it.
+        assert run_problem.n_fitness_calls == variant.n_evals, (
+            f"budget violated: {run_problem.n_fitness_calls} != {variant.n_evals}")
         st.session_state.pso = (res, variant, share, size)
+        st.session_state.pso_sig = sig
 
     res, variant, share, size = st.session_state.pso
-    rnd_fit, grid_fit = wifi_baselines(int(seed))
+    rnd_fit, grid_fit = wifi_baselines(DEMO_SEED)
 
     with right:
-        t = st.slider("Iteration", 0, len(res["history"]) - 1,
-                      len(res["history"]) - 1,
+        n_iter = len(res["history"]) - 1
+        # The key ties the slider to THIS run. Without it the slider keeps its old
+        # value across a change of swarm size, and 3029 is not a legal position on a
+        # 100-step run.
+        t = st.slider("Iteration", 0, n_iter, n_iter,
+                      key=f"iter_{size}_{share}",
                       help="Drag back to zero and watch the swarm converge.")
+        t = min(t, n_iter)                       # belt and braces
         best_at_t = res["gbest_trace"][t].reshape(variant.n_aps, 2)
         st.pyplot(draw_floor(problem, variant, best_at_t,
                              swarm=res["swarm_trace"][t],
                              trail=res["gbest_trace"][:t + 1]),
-                  use_container_width=True)
+                  width="stretch")
 
     c1, c2_, c3, c4 = st.columns(4)
     final = res["best_fitness"]
@@ -272,7 +327,7 @@ def tab_decision():
         fuel = st.select_slider("Diesel left today (generator-hours)",
                                 list(range(cfg.n_fuel)), value=cfg.fuel_per_day)
         st.pyplot(draw_policy(mdp, pi_star, fuel, "Value Iteration (exact optimum)"),
-                  use_container_width=True)
+                  width="stretch")
         st.info(
             "Look at the right-hand panel, where the power is out. The **red** region (burn "
             "diesel) *grows* as you enter the shaded evening window: at 7am with a low tank it "
@@ -285,7 +340,7 @@ def tab_decision():
             ql_pol, ql_reg, ce_pol, ce_reg, cov, steps = train_q_learning()
             st.pyplot(draw_policy(mdp, ql_pol, fuel,
                                   f"Q-learning ({steps:,} steps)"),
-                      use_container_width=True)
+                      width="stretch")
             st.caption(
                 f"Same overall structure, but speckled. That is what 'has not seen enough data "
                 f"yet' looks like — {ql_reg:.1f}% regret, having visited {100 * cov:.0f}% of "
@@ -344,8 +399,8 @@ def tab_decision():
         ax.set_ylabel("tank level")
         ax.legend(loc="upper left", fontsize=8); ax.grid(alpha=0.3)
         fig.tight_layout()
-        st.pyplot(fig, use_container_width=True)
-        st.dataframe(rows, use_container_width=True, height=210)
+        st.pyplot(fig, width="stretch")
+        st.dataframe(rows, width="stretch", height=210)
         st.caption(
             "Run the optimal policy and the myopic one on the same seed. The myopic agent "
             "waits until the tank is low before it does anything — and by then the power is "
@@ -390,7 +445,7 @@ def tab_decision():
         ax.set_ylabel("regret % (lower is better)")
         ax.legend(fontsize=8); ax.grid(alpha=0.3)
         fig.tight_layout()
-        st.pyplot(fig, use_container_width=True)
+        st.pyplot(fig, width="stretch")
 
         if reg_b < ql_reg:
             st.success(
