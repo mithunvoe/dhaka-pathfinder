@@ -1,5 +1,70 @@
 # The pitch — what to say tomorrow
 
+---
+
+# READ THIS FIRST. If you read nothing else, read this.
+
+**You do not need to explain anything clever. You need to say four true sentences.**
+
+## Part A — the safe version
+
+> *"The hall floor has 40 rooms and 3 concrete walls, and I can only afford 3 Wi-Fi
+> access points. Where do I put them?*
+>
+> *I used a swarm — 30 guesses that move around and share the best one they've found.*
+>
+> *And here's the experiment I'm proud of. I turned OFF their ability to talk to each
+> other, kept everything else identical, and they dropped to the same score as random
+> guessing. Turn talking back on and they jump straight back up.*
+>
+> ***So it isn't having lots of agents that helps. It's that they communicate.*** *That's
+> the ant-in-a-bowl point from your briefing."*
+
+## Part B — the safe version
+
+> *"The hall has a water tank and a pump. The power keeps cutting out, worst in the
+> evening. And there's only two hours of diesel a day.*
+>
+> *I solved it two ways.*
+>
+> ***Value Iteration** — I gave it the rules of the world, and it calculated the perfect
+> answer in 0.2 seconds.*
+>
+> ***Q-learning** — I gave it nothing. No rules. It had to learn by trial and error, and
+> after 720,000 hours of trying it was still 15% off perfect.*
+>
+> ***So: if you can write down the rules of your problem, write them down and calculate.
+> Q-learning is for when you can't.***"
+
+**That is a complete and correct answer to both parts.** It answers exactly what he asked
+for. You can stop there and be fine.
+
+## The only follow-up you're likely to get
+
+**"Why is Q-learning worse?"**
+
+> *"Because Value Iteration can work out every situation at once from the rules.
+> Q-learning has to bump into each situation one at a time and learn it the hard way."*
+
+Say that. Then stop. It is true and it is enough.
+
+## If you don't know something
+
+> *"I don't know — let me look."*
+
+Then open `report/main.pdf` and find it. **Looking something up is not a failure.
+Making a number up is.**
+
+---
+
+# Everything below here is BONUS.
+
+It is there if he digs, or if you feel confident on the day. **None of it is required.**
+If you are tired or nervous, use the four sentences above and let the plots do the rest.
+
+---
+
+
 Everything below is written to be **said out loud**. Plain words. Where it says
 *"say this"*, that is the actual sentence.
 
