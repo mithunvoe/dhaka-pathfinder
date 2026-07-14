@@ -330,41 +330,86 @@ def plot_hyperparams(df, path):
 # E6 - What does the optimal policy actually DO?
 # =====================================================================
 def plot_policy_maps(mdp, pi_star, pi_ql, path):
-    """Tank level against hour of day, at a full diesel ration. This is the
-    figure that shows the agent pre-filling before the evening outage window -
-    the whole reason the problem needs lookahead.
+    """The policy, drawn as the lookup table it actually is.
+
+    This figure is NOT a timeline. Nothing happens left to right. It is a
+    lookup table: pick an hour (column), pick a tank level (row), and the colour
+    tells you what to do IN THAT SITUATION.
+
+    The left and right panels are two different WORLDS, and both exist at every
+    hour: "suppose the power is on right now" and "suppose the power is out right
+    now". The shaded band marks the RISKY HOURS - when outages are likely and
+    demand peaks. It does NOT mean the power is off; that is what the left/right
+    split is for.
+
+    An earlier version of this figure labelled the shading "load-shedding window",
+    which made the blue inside it on the grid-UP panel look like a contradiction.
+    It is the opposite - it is the smartest thing in the picture. It says: it is
+    8pm, the power may go at any moment, but right now it is still on, so pump
+    hard while you still can. The labels now say that.
     """
     cfg = mdp.cfg
     cmap = matplotlib.colors.ListedColormap(["#eeeeee", "#1f77b4", "#d62728"])
-    fig, axes = plt.subplots(2, 2, figsize=(11.5, 6.6), sharex=True, sharey=True)
+    fig, axes = plt.subplots(2, 2, figsize=(12.4, 7.4), sharex=True, sharey=True)
 
     panels = [
-        (pi_star, 1, "Value iteration (optimal) - grid UP"),
-        (pi_star, 0, "Value iteration (optimal) - grid DOWN"),
-        (pi_ql, 1, "Q-learning - grid UP"),
-        (pi_ql, 0, "Q-learning - grid DOWN"),
+        (pi_star, 1, "VALUE ITERATION  (the exact optimum)",
+         "IF the power is ON right now"),
+        (pi_star, 0, "VALUE ITERATION  (the exact optimum)",
+         "IF the power is OUT right now"),
+        (pi_ql, 1, "Q-LEARNING  (learned from experience)",
+         "IF the power is ON right now"),
+        (pi_ql, 0, "Q-LEARNING  (learned from experience)",
+         "IF the power is OUT right now"),
     ]
-    for ax, (pol, g, title) in zip(axes.ravel(), panels):
+    for ax, (pol, g, who, world) in zip(axes.ravel(), panels):
         grid = np.zeros((cfg.n_levels, 24), dtype=int)
         for L in range(cfg.n_levels):
             for t in range(24):
                 grid[L, t] = pol[mdp.encode(L, t, g, cfg.fuel_per_day)]
         ax.imshow(grid, origin="lower", aspect="auto", cmap=cmap, vmin=0, vmax=2)
         ax.axvspan(17.5, 22.5, color="black", alpha=0.10)
-        ax.set_title(title, fontsize=10)
+        ax.set_title(f"{who}\n{world}", fontsize=9.5, linespacing=1.4)
         ax.set_xticks(range(0, 24, 3))
         ax.set_yticks(range(0, cfg.n_levels, 2))
+
+    # Say what the shading means, on the figure, so nobody has to guess.
+    axes[0, 0].text(20, 10.6, "risky hours", fontsize=7.5, ha="center",
+                    style="italic", color="#444444")
+    axes[0, 1].text(20, 10.6, "risky hours", fontsize=7.5, ha="center",
+                    style="italic", color="#444444")
+
+    # The two things worth pointing at.
+    axes[0, 0].annotate(
+        "still ON at 6pm, so it tops up\neven a nearly-full tank\nwhile the power lasts",
+        xy=(19, 8.4), xytext=(9.0, 9.6), fontsize=7.5, color="black",
+        ha="center", va="center",
+        arrowprops=dict(arrowstyle="->", lw=0.9, color="black"),
+        bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="grey", alpha=0.9))
+    axes[0, 1].annotate(
+        "power is OUT: it now burns diesel\nat a MUCH higher tank level\nonce the evening starts",
+        xy=(19.5, 5.0), xytext=(9.5, 8.6), fontsize=7.5, color="black",
+        ha="center", va="center",
+        arrowprops=dict(arrowstyle="->", lw=0.9, color="black"),
+        bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="grey", alpha=0.9))
+
     for ax in axes[1]:
-        ax.set_xlabel("hour of day  (shaded: evening load-shedding window)")
+        ax.set_xlabel("hour of day        (shaded 5pm-10pm: demand peaks AND\n"
+                      "outages are most likely - it does NOT mean the power is off)",
+                      fontsize=8.5)
     for ax in axes[:, 0]:
         ax.set_ylabel("tank level (x100 L)")
 
     handles = [plt.Rectangle((0, 0), 1, 1, fc=c) for c in
                ["#eeeeee", "#1f77b4", "#d62728"]]
-    fig.legend(handles, ACTION_NAMES, loc="lower center", ncol=3, fontsize=9,
-               frameon=False, bbox_to_anchor=(0.5, -0.015))
-    fig.suptitle("Learned and computed policies, at a full diesel ration", fontsize=11)
-    fig.tight_layout(rect=(0, 0.035, 1, 1))
+    fig.legend(handles, ["do nothing", "pump on grid power", "burn diesel"],
+               loc="lower center", ncol=3, fontsize=9.5, frameon=False,
+               bbox_to_anchor=(0.5, -0.012))
+    fig.suptitle(
+        "What to do in every situation  (this is a LOOKUP TABLE, not a timeline)\n"
+        "Pick an hour, pick a tank level, read the colour. Diesel ration full.",
+        fontsize=11, linespacing=1.5)
+    fig.tight_layout(rect=(0, 0.04, 1, 0.99))
     fig.savefig(path, dpi=130)
     plt.close(fig)
 

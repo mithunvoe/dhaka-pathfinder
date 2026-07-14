@@ -182,7 +182,35 @@ He will wonder whether a simple rule would do. Answer it before he asks.
 
 ### 3.3 Show the policy map (60 seconds)
 
-Open `rl_policy_maps.png`. Point at the **top-right** panel.
+Open `rl_policy_maps.png`.
+
+**First, tell him how to read it, because it is not obvious.**
+
+> *"This isn't a timeline. Nothing happens left to right. It's a lookup table.*
+>
+> *Pick an hour along the bottom. Pick a tank level up the side. The colour tells
+> you what to do in that exact situation. Grey is do nothing, blue is pump on grid
+> power, red is burn diesel.*
+>
+> *And the left and right panels are two different worlds, both of which exist at
+> every hour. Left is 'suppose the power is ON right now'. Right is 'suppose the
+> power is OUT right now'.*
+>
+> *The shaded band is just the risky hours — 5 to 10pm, when demand peaks and
+> outages are most likely. It does NOT mean the power is off. That's what the
+> left/right split is for."*
+
+**That last sentence matters.** Without it, the blue inside the shaded band on the
+left panel looks like a contradiction — "you said the power is out, why is it
+pumping on the grid?" It isn't a contradiction. It's the cleverest thing in the
+figure, and you should say so:
+
+> *"Look at the blue inside the shaded band on the left. That's the agent saying:
+> it's 8pm, the power could go at any moment — but right now it's still on, so pump
+> HARD while I still can. It even tops up a nearly-full tank, which it never bothers
+> doing at 3am. That's it grabbing cheap electricity before it disappears."*
+
+Now point at the **top-right** panel.
 
 > *"Hours across the bottom, tank level up the side. Red means burn diesel.*
 >

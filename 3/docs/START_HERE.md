@@ -117,11 +117,31 @@ guessing*. Thirty particles that share one number score 89.9.
 > That is the teacher's ant-in-a-bowl point, proven. It is not the *population* that helps. It
 > is the **communication**. If you only remember one result, remember this one.
 
-**`rl_policy_maps.png`** — four grids. Left-right is the hour of the day, up-down is how full
-the tank is. Blue = pump on grid, red = burn diesel, grey = do nothing. Look at the top-right
-panel (the optimal policy when the power is out): the red region *grows* as you enter the
-shaded evening window. That is the agent *anticipating* — spending diesel more willingly at 7pm
-than at 7am, because it knows the outage will be long.
+**`rl_policy_maps.png`** — the one people misread, so read this first.
+
+**It is not a timeline.** Nothing happens left to right. It is a **lookup table**: pick an hour
+(column), pick a tank level (row), and the colour tells you what to do *in that situation*.
+Grey = do nothing, blue = pump on grid, red = burn diesel.
+
+**The left and right panels are two different worlds**, and both exist at every hour:
+
+- **Left:** "suppose the power is **ON** right now — what do I do?"
+- **Right:** "suppose the power is **OUT** right now — what do I do?"
+
+The shaded band is just **the risky hours** (5–10pm, when demand peaks and outages are most
+likely). It does **not** mean the power is off — that is what the left/right split is for.
+
+Once you know that, two things jump out:
+
+1. **Blue inside the shaded band, on the LEFT.** It's 8pm, the power could go any second, but
+   right now it's still on — so pump *hard* while you can. It even tops up a nearly-full tank,
+   which it never bothers doing at 3am. That is the agent grabbing cheap electricity before it
+   disappears.
+2. **The red region GROWS in the shaded band, on the RIGHT.** With the power out at 7am and a
+   low tank it does nothing; at 7pm with the same tank it burns diesel. It is willing to spend
+   its scarce fuel in the evening because it knows the outage will be long.
+
+Both of those are *anticipation*. That is the whole point of Part B.
 
 Then compare the bottom row (Q-learning) to the top row (Value Iteration). Same shape, but
 speckled and messy. That is what "hasn't seen enough data yet" looks like.

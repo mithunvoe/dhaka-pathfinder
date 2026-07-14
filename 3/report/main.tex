@@ -803,11 +803,20 @@ So the honest conclusion inverts the one we went looking for:
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.92\textwidth]{figures/a3_rl_policy_maps.png}
-  \caption{Policies at a full diesel ration. Value Iteration (top) is clean and shows the
-  diesel region expanding into the shaded evening outage window --- that is anticipation. Q-learning
-  (bottom) recovers the same structure but speckled, which is what an under-trained tabular
-  learner looks like. It picks an optimal action in 86.6\% of states.}
+  \includegraphics[width=\textwidth]{figures/a3_rl_policy_maps.png}
+  \caption{The policy as a lookup table, at a full diesel ration. This is \emph{not} a
+  timeline: pick an hour (column) and a tank level (row), and the colour is the action in that
+  state. The left and right panels are two different worlds that both exist at every hour ---
+  "the power is on right now" and "the power is out right now" --- and the shaded band marks the
+  risky hours (17:00--22:00, when demand peaks and outages are most likely), \emph{not} hours in
+  which the power is off.
+  Two things follow. On the left, the blue inside the shaded band is the agent pumping hard
+  \emph{because} the power may be about to go: at 18:00 it tops up even a nearly-full tank, which
+  it never does at 03:00. On the right, the diesel region expands sharply once the evening opens
+  --- with the power out at 07:00 and a low tank it idles, but at 19:00 with the same tank it
+  burns fuel. Both are anticipation, and neither is expressible by a clock-blind threshold rule.
+  Q-learning (bottom) recovers the same structure but speckled, which is what an under-trained
+  tabular learner looks like; it picks an optimal action in 86.6\% of states.}
   \label{fig:a3policy}
 \end{figure}
 
