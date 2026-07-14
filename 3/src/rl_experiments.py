@@ -183,19 +183,39 @@ def plot_learning(lr, mismatch, path):
     # at all - that is the whole point of having a model.
     for scale, style in [(1.0, "-"), (0.25, "--"), (0.0, ":")]:
         r = mismatch[scale]
-        ax.axhline(r, color="#2ca02c", ls=style, lw=1.4)
-        tag = {1.0: "VI, correct model (no samples needed)",
-               0.25: "VI, model believes outages are 4x rarer",
-               0.0: "VI, model believes the grid never fails"}[scale]
-        ax.text(steps[-1], r, f"  {tag}  ({r:.1f}%)", fontsize=7.5,
-                color="#2ca02c", va="bottom", ha="right")
+        tag = {1.0: "VI with the correct model",
+               0.25: "VI, model 4x too optimistic",
+               0.0: "VI, model says grid never fails"}[scale]
+        # These go in the LEGEND. As inline text at the right-hand edge the 0.0%
+        # and 2.7% labels sat on top of each other and neither could be read.
+        ax.axhline(r, color="#2ca02c", ls=style, lw=1.4,
+                   label=f"{tag}  ({r:.1f}%) - needs NO samples")
 
-    ax.set_xlabel("Environment steps (simulated hours of hall operation)")
-    ax.set_ylabel("Policy regret vs exact optimum  (%, lower is better)")
-    ax.set_title("Same samples, two ways of spending them")
-    ax.set_ylim(bottom=0)
+    # A log y-axis, because the story lives at both ends: Q-learning starts at
+    # 243% and the interesting difference at the end is between 15% and 1.4%.
+    # On a linear axis the early spike squashes the entire finding into a smear
+    # along the bottom.
+    ax.set_yscale("log")
+    ax.set_ylim(0.8, 400)
+    ax.set_yticks([1, 2, 5, 10, 25, 50, 100, 250])
+    ax.get_yaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+
+    # Spell out the punchline on the figure.
+    ql_end, ce_end = lr["ql"].mean(axis=0)[-1], lr["ce"].mean(axis=0)[-1]
+    ax.annotate("", xy=(steps[-1], ql_end), xytext=(steps[-1], ce_end),
+                arrowprops=dict(arrowstyle="<->", lw=1.6, color="black"))
+    ax.text(steps[-1] * 0.985, (ql_end * ce_end) ** 0.5,
+            f"{ql_end / ce_end:.0f}x apart\non the SAME data",
+            fontsize=9, ha="right", va="center", fontweight="bold",
+            bbox=dict(boxstyle="round,pad=0.35", fc="white", ec="black", alpha=0.9))
+
+    ax.set_xlabel("Environment steps  (simulated hours of hall operation)")
+    ax.set_ylabel("Policy regret vs the exact optimum   (%, log scale, lower is better)")
+    ax.set_title("Same samples, two ways of spending them\n"
+                 "Q-learning throws each sample away; a learned model re-uses every one",
+                 fontsize=11)
     ax.legend(fontsize=8, loc="upper right")
-    ax.grid(alpha=0.3)
+    ax.grid(alpha=0.3, which="both")
     fig.tight_layout()
     fig.savefig(path, dpi=130)
     plt.close(fig)

@@ -263,6 +263,82 @@ Open `rl_model_mismatch.png`.
 **Pause here.** Let it land. This is a negative result about your own idea, reported
 honestly, and it is the most impressive thing in the submission.
 
+### 3.45 The order to show the Part B graphs
+
+You have five. **Show three. Keep two in reserve.**
+
+| # | figure | what it is for | when |
+|---|---|---|---|
+| 1 | `rl_policy_maps.png` | what the agent *learned* | always |
+| 2 | `rl_learning_curves.png` | **why Q-learning is slow** | always |
+| 3 | `rl_model_mismatch.png` | **the finding** | always |
+| 4 | `rl_vi_convergence.png` | the theory checks out | only if he asks |
+| 5 | `rl_hyperparams.png` | which knobs matter | only if he asks |
+
+### The middle one — why Q-learning "fails"
+
+Open `rl_learning_curves.png`. **Red is Q-learning. Blue is a model learned from
+Q-learning's own samples.** Both lines are fed *exactly the same data*.
+
+Say the correction first, because it makes you sound precise rather than defensive:
+
+> *"First — it doesn't actually fail. It gets to 15% regret, which beats the greedy
+> policy at 121% and random at 326%. It's sample-INEFFICIENT, not broken."*
+
+Then the argument, which is airtight:
+
+> *"Now, why is it so slow? The obvious answer would be 'not enough data'. But look
+> at the blue line. That's a model I built from the EXACT SAME 720,000 samples, and
+> it gets to 1.4%. If the problem were not enough data, blue would have failed too.
+> It didn't.*
+>
+> *So the data was plenty. Q-learning wasted it.*
+>
+> *Here's how. A Q-learning update takes one sample, nudges ONE cell of the table a
+> little bit, and then throws the sample away forever. There are 3,432 cells.*
+>
+> *A learned model stores that same sample as a count. And then value iteration
+> re-reads that count in every one of its 2,273 sweeps. So one sample gets used
+> thousands of times, and its consequences spread across the whole table.*
+>
+> *It's the difference between a student who does a practice problem, scribbles the
+> answer on a sticky note and bins the problem — and a student who writes every
+> problem in a notebook and then re-reads the notebook a thousand times working out
+> all the knock-on consequences. Same problems seen. Completely different amount
+> learned."*
+
+Point at the arrow on the right of the figure: **11x apart, on identical data.**
+
+If he pushes for the deeper reason, you have two more:
+
+> *"And gamma makes it worse. Value has to crawl backwards one hop per update.
+> Pumping at 2pm only pays off at 8pm — that's six hops, and each hop needs its own
+> visits. At gamma = 0.99 the horizon is 100 hours, so news travels very slowly.*
+>
+> *It's also a theorem, not just my observation. Li et al. 2024 prove vanilla tabular
+> Q-learning is stuck at 1 over (1 minus gamma) to the fourth, while model-based
+> needs 1 over (1 minus gamma) cubed. At gamma = 0.99 that missing factor is a
+> hundred. My Q-learner isn't slow because I coded it badly. It's slow because it
+> mathematically has to be."*
+
+**The two you keep in reserve**
+
+- `rl_vi_convergence.png` — if he asks "how do you know value iteration converged?"
+  > *"The Bellman operator is a gamma-contraction, so the error must shrink by a
+  > factor of gamma every sweep. My measured rate is 0.9900. Gamma is 0.99. That's
+  > the theory, confirmed to four decimal places."*
+- `rl_hyperparams.png` — if he asks about tuning.
+  > *"Two things mattered enormously and one didn't. Turning off exploring starts
+  > triples the regret — 77% against 25%. A constant learning rate stalls at 50%
+  > where the Robbins-Monro schedule reaches 25%, exactly as Even-Dar and Mansour
+  > say it must. And epsilon? I tried 0.01, 0.05, 0.2 — barely any difference, inside
+  > the seed noise. So I report that too."*
+
+That last line is worth saying deliberately. He explicitly asked for honest null
+results.
+
+---
+
 ### 3.5 If he asks "so why did you bother with Q-learning?"
 
 > *"Because that's the answer the experiment gives, and I'd rather report it than

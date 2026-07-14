@@ -755,10 +755,19 @@ that factor is \textbf{100}. The theory predicts our Q-learner should be about t
 magnitude behind in sample efficiency purely because of the discount, and a ten-fold regret gap
 at a fixed 720{,}000 samples is what that looks like from the inside.
 
-The mechanism is not mysterious once stated: a Q-learning update spends a transition on one cell
-of the table and then discards it, whereas a learned model \emph{stores} it and every subsequent
-Bellman backup re-reads it, so one sample propagates across the whole state space instead of into
-the single cell where it landed.
+The mechanism is not mysterious once stated. A Q-learning update takes one transition, nudges a
+single one of the 3{,}432 state-action cells, and then discards the sample forever. A learned
+model \emph{stores} that same transition as a count, and every one of value iteration's 2{,}273
+sweeps re-reads it --- so one sample is used thousands of times and its consequences propagate
+across the whole state space instead of into the single cell where it landed.
+
+We should be precise about what is being claimed, because "Q-learning fails" would be
+wrong. It does not fail: at 15.1\% regret it comfortably beats the myopic policy (120.6\%) and a
+random policy (326.2\%). It is \emph{sample-inefficient}, and the reason we can say that with
+confidence rather than guessing is the certainty-equivalence arm. Had the difficulty been a
+shortage of data, the learned model --- trained on \emph{exactly the same} 720{,}000 transitions
+--- would have been just as poor. It reaches 1.4\%. The data was sufficient; the learner was
+wasteful.
 
 One caveat we will not drop, because it is the difference between a true claim and a sloppy one:
 this separation is against \emph{vanilla tabular} Q-learning, not against model-free RL in

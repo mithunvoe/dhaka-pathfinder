@@ -7,7 +7,7 @@
  gamma = 0.99  ->  effective horizon 1/(1-gamma) = 100 hours
 --------------------------------------------------------------------------
  E1  VALUE ITERATION
-     converged in 2273 sweeps (0.21 s)
+     converged in 2273 sweeps (0.24 s)
      empirical contraction rate = 0.9900   (theory says exactly gamma = 0.99)
      cross-check |V* - V^pi*|_inf = 1.81e-08  (VI agrees with the exact linear solve)
      optimal value V* (mean over start states) = -163.637
@@ -25,7 +25,7 @@ Tuned caretaker rule (grid<9, diesel<3)    -187.38      14.51      36.85        
      So the lookahead is doing real work - this is not a vacuous MDP.
 --------------------------------------------------------------------------
  E3  LEARNING FROM EXPERIENCE  (5 seeds x 30,000 episodes x 24 h)
-     done in 83 s
+     done in 73 s
      state-action coverage reached: 100.0% of legal pairs
      after 720,000 steps:
        Q-learning              regret =  15.13 % +/- 2.36
@@ -53,7 +53,7 @@ Tuned caretaker rule (grid<9, diesel<3)    -187.38      14.51      36.85        
         of experience. That is the finding, and it is not the one we expected.
 --------------------------------------------------------------------------
  E5  HYPERPARAMETER SWEEP  (3 seeds x 8,000 episodes)
-     done in 113 s
+     done in 131 s
           Group                       Setting  Regret % (mean)  Regret % (std)
   Learning rate       polynomial  1/(1+n)^0.7            25.07            2.10
   Learning rate       polynomial  1/(1+n)^0.5            28.17            5.91
