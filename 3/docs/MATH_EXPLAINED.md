@@ -27,7 +27,7 @@ vocabulary used in `statement.md`.
 | $\mathbb{1}[\ldots]$ | "1 if that's true, 0 if not" | a switch |
 | $\sigma(z)$ | "squash $z$ into a number between 0 and 1" | the S-curve, below |
 | $\gamma$ (gamma) | "how much I care about the future" | 0.99 |
-| $\pi$ (pi) | **not** 3.14 here — it means "policy", a rule | $\pi(s) = $ what to do in state $s$ |
+| $\pi$ (pi) | **not** 3.14 here — it means "policy", a rule | $\pi(s)$ = what to do in state $s$ |
 
 That table is genuinely most of it. If a formula still looks bad, it is usually
 because several of these are stacked, not because it is deep.

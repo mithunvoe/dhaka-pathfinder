@@ -110,7 +110,7 @@ unverifiable numbers as fact.
   escape local optima.
 - **(f) Results.** Solved 6 well-known ESA GTOP problems; matched the known
   best on **5 of 6** and set a **new best-known on 4 of 6** `[verified headline;
-  per-problem $\Delta v$ paywalled, unverified]`.
+  per-problem delta-v paywalled, unverified]`.
 - **(g) Citation.** Choi, J.H.; Lee, J.; Park, C. "Deep-space trajectory
   optimizations using differential evolution with self-learning." *Acta
   Astronautica*, 191:258–269, 2022. DOI 10.1016/j.actaastro.2021.11.014.
@@ -297,7 +297,7 @@ unverifiable numbers as fact.
   berth; primary case 62 vessels over 3 berths (also 35/55/62 vessels × 5/10
   berths).
 - **(d) Fitness.** Minimise
-  $Z^\*=w_0\!\sum v_i(\cdot)+w_1\!\sum[\max(0,a_i{-}T){+}\max(0,T{+}t{-}b_i)]+w_2\sum[\cdot]$
+  $Z^{*}=w_0\!\sum v_i(\cdot)+w_1\!\sum[\max(0,a_i{-}T){+}\max(0,T{+}t{-}b_i)]+w_2\sum[\cdot]$
   (service cost + vessel and berth time-window penalties), weights $[1,10,10]$.
 - **(e) Constraints.** Penalty relaxation — hard time-window constraints become
   soft penalty terms, allowing temporarily infeasible intermediate solutions.

@@ -54,8 +54,7 @@ floor) explodes combinatorially and throws away the continuous structure.
 **Particle Swarm Optimization (PSO)**, canonical inertia-weight form (Kennedy &
 Eberhart 1995; inertia by Shi & Eberhart 1998). Each *particle is literally a
 candidate AP layout* — a point in $\mathbb{R}^{2K}$ — so the velocity update
-$\mathbf v \leftarrow w\mathbf v + c_1 r_1(\mathbf p_{\text{best}}-\mathbf x)+c_2
-r_2(\mathbf g_{\text{best}}-\mathbf x)$ moves layouts through the floor in a way
+$\mathbf v \leftarrow w\mathbf v + c_1 r_1(\mathbf p_{\text{best}}-\mathbf x)+c_2 r_2(\mathbf g_{\text{best}}-\mathbf x)$ moves layouts through the floor in a way
 that is geometrically meaningful. The swarm's collective spatial search matches
 the spatial nature of the problem, and inertia decay gives a clean
 exploration→exploitation schedule. (A real-valued GA is a viable alternative;
@@ -569,7 +568,7 @@ apart from a model-free one in a way that means something.
 
 | Criterion | B1 · Water tank | B2 · Dining hall | B3 · Shuttle dispatch |
 |---|---|---|---|
-| **Feasibility** | ★★★ $|\mathcal S|=1584$; sparse $P$; VI converges in 2273 sweeps in **0.23 s**; a tabular Q-learner covers every legal $(s,a)$ | ★★ 70,308 states — VI still runs, but ~45× heavier per sweep, and tabular Q-learning needs far more samples before coverage is honest | ★ $\sim10^9$ states before aggregation; not tabulable, so neither algorithm runs as taught |
+| **Feasibility** | ★★★ $\lvert\mathcal S\rvert=1584$; sparse $P$; VI converges in 2273 sweeps in **0.23 s**; a tabular Q-learner covers every legal $(s,a)$ | ★★ 70,308 states — VI still runs, but ~45× heavier per sweep, and tabular Q-learning needs far more samples before coverage is honest | ★ $\sim10^9$ states before aggregation; not tabulable, so neither algorithm runs as taught |
 | **Needs lookahead** | ★★★ myopic loses **120.62%**; even the *tuned* reactive rule loses **14.51%** | ★★★ the 30-min cook lead time makes any greedy rule structurally late | ★★★ holding is an investment; dispatch is irreversible |
 | **Demonstrability** | ★★★ policy is a 2-D picture (tank level × hour): you can *see* the agent pre-fill before the evening outage band | ★★ 4-D state with no natural slice; only fragments of a policy are viewable | ★ a dispatch log; nothing legible |
 | **Separates VI from QL** | ★★★ exact $P$ exists **and** a genuinely wrong prior exists in the real world (the published load-shedding schedule) — so "how wrong can your model be?" is a real experiment | ★ $P$ is writable but trivially measurable, so a wrong-prior story is contrived; and the finite horizon removes the contraction/residual experiment entirely | ✗ no honest $P$ → no VI, no exact optimum, no regret axis. The comparison cannot be made |
@@ -589,7 +588,7 @@ entire experiment: with backward induction there are no Bellman residuals to
 plot, no contraction rate to check against $\gamma^k$, and no stopping-tolerance
 bound to justify.
 
-B1 keeps all of it. $|\mathcal S|=1584$ is small enough that Value Iteration
+B1 keeps all of it. $\lvert\mathcal S\rvert=1584$ is small enough that Value Iteration
 returns the exact optimum in 0.23 s, which means every other policy in the report
 can be scored as a *regret against a known optimum* rather than as a number with
 no yardstick. The continuing, discounted formulation gives us the residual-decay

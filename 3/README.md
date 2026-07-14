@@ -86,7 +86,8 @@ pip install -r requirements.txt
 ./run.sh rl             # Part B: Value Iteration vs Q-learning     (~4 min)
 ./run.sh rl --quick     # Part B, fewer seeds and episodes          (~40 s)
 ./run.sh test           # 42 unit tests
-./run.sh report         # compile report/main.pdf
+./run.sh report         # compile report/main.pdf  (the submission)
+./run.sh pdfs           # convert every doc in docs/ to PDF -> pdf/
 ```
 
 Figures land in `results/plots/`, tables in `results/tables/`.
@@ -122,11 +123,16 @@ be able to defend every line.
 │   ├── PART5_code_defense.md  # code-to-theory map + "he points at the screen" questions
 │   ├── PART6_decision_making.md # MDP theory: Bellman, contraction, Q-learning convergence
 │   └── PART7_literature_applied.md # which papers changed which line, and the 2 that corrected us
+├── pdf/                       # every doc above as a PDF, + ALL_DOCS.pdf (95 pages, combined)
+├── scripts/build_pdfs.sh      # regenerates pdf/  ->  ./run.sh pdfs
 └── results/
     ├── plots/
     ├── tables/
     └── rl_full_run.log
 ```
+
+The PDFs in `pdf/` are the docs, for reading offline or printing. They are **not** the
+submission — `report/main.pdf` is.
 
 ---
 

@@ -340,10 +340,10 @@ model-free means "I can only average over things that actually happened to me".
 $\gamma$ is an **operational horizon**, not a psychological one. $1/(1-\gamma) = 100$ hours of
 effective lookahead — comfortably more than the 24-hour cycle the entire story depends on, so
 the agent at 14:00 can still see the evening outage window. Mathematically, discounting is
-what makes the Bellman operator a contraction and guarantees a bounded, unique $V^\*$ on a
+what makes the Bellman operator a contraction and guarantees a bounded, unique $V^{*}$ on a
 continuing task. The honest concession: the discounted-optimal policy is **not guaranteed to
 be gain-optimal** (average-reward optimal). I say so rather than pretending the two criteria
-coincide, and I never draw the discounted $V^\*$ line on an average-cost axis — `rollout_stats`
+coincide, and I never draw the discounted $V^{*}$ line on an average-cost axis — `rollout_stats`
 reports cost/day and shortage/day separately, as translation, not as the optimisation target.
 
 **Q. Bellman optimality vs Bellman expectation — what actually differs?**
@@ -353,7 +353,7 @@ So I do not iterate it — `policy_evaluation()` **solves** it with a sparse lin
 $(I - \gamma P_\pi)$ is invertible for any $\gamma < 1$ because $\gamma P_\pi$ has spectral
 radius $\le \gamma < 1$.
 The **optimality** equation carries a $\max$:
-$V^\*(s) = \max_{a \in A(s)}[R(s,a) + \gamma\sum_{s'}P(s'\mid s,a)V^\*(s')]$ — nonlinear, no
+$V^{*}(s) = \max_{a \in A(s)}[R(s,a) + \gamma\sum_{s'}P(s'\mid s,a)V^{*}(s')]$ — nonlinear, no
 closed form, so it must be iterated (or turned into an LP). Both operators are
 $\gamma$-contractions in $\|\cdot\|_\infty$; only one of them is linear. That is exactly why
 VI exists and why policy evaluation does not need to.
@@ -367,29 +367,29 @@ The Bellman optimality operator $T$ is a $\gamma$-contraction in the sup norm:
 $\|TV - TU\|_\infty \le \gamma\|V - U\|_\infty$. Two facts do the work — $\max$ is
 non-expansive ($|\max_a x_a - \max_a y_a| \le \max_a|x_a - y_a|$), and each row of $P$ is a
 probability distribution, so averaging cannot increase a sup norm; the $\gamma$ out front does
-the shrinking. Banach's fixed-point theorem then gives a **unique** $V^\*$ and **geometric**
+the shrinking. Banach's fixed-point theorem then gives a **unique** $V^{*}$ and **geometric**
 convergence from *any* initialisation. My run: **2273 sweeps** to tol $10^{-9}$, **0.23 s**.
 
 **Q. Your residual decays at exactly 0.9900. Contraction only gives you "≤ γ". Why is it tight?**
 Right — the theorem is an upper bound, so measuring the *bound* is not the same as measuring
 the *rate*. The rate is tight for a specific reason. The greedy policy stops changing long
 before sweep 2273; after that, VI is a **linear** iteration
-$V_{k+1} = R_{\pi^\*} + \gamma P_{\pi^\*} V_k$, so the error $e_k = V_k - V^\*$ obeys
-$e_{k+1} = \gamma P_{\pi^\*} e_k$. The asymptotic rate is therefore
-$\gamma \cdot \rho(P_{\pi^\*}) = \gamma \cdot 1 = \gamma$, because $P_{\pi^\*}$ is row-stochastic
+$V_{k+1} = R_{\pi^{*}} + \gamma P_{\pi^{*}} V_k$, so the error $e_k = V_k - V^{*}$ obeys
+$e_{k+1} = \gamma P_{\pi^{*}} e_k$. The asymptotic rate is therefore
+$\gamma \cdot \rho(P_{\pi^{*}}) = \gamma \cdot 1 = \gamma$, because $P_{\pi^{*}}$ is row-stochastic
 and its dominant eigenvalue is exactly 1. Measured: **0.9900**, which is $\gamma$ to four
 decimals. This makes it a genuine unit test on the maths: a rate *above* $\gamma$ would mean a
 bug in the backup; a rate meaningfully *below* it would mean the induced chain is degenerate.
-I also cross-check the answer independently — $\|V^\* - V^{\pi^\*}\|_\infty = 1.81\times10^{-8}$
+I also cross-check the answer independently — $\|V^{*} - V^{\pi^{*}}\|_\infty = 1.81\times10^{-8}$
 against the exact linear solve, consistent with the standard stopping bound
-$\|V_k - V^\*\|_\infty \le \gamma\epsilon/(1-\gamma) \approx 10^{-7}$.
+$\|V_k - V^{*}\|_\infty \le \gamma\epsilon/(1-\gamma) \approx 10^{-7}$.
 
 **Q. Why is Q-learning off-policy? Point at the line.**
 This line: `td_target = r + gamma * Q[s_next].max()`. The bootstrap uses
 $\max_{a'} Q(s',a')$ — the **greedy** action — not $Q(s', a_{\text{actually taken next}})$.
 So the update does not depend on how the behaviour policy chooses to act. The agent behaves
 $\epsilon$-greedily (and starts in a uniformly random state) forever, and still converges to
-$Q^\*$: it *learns about* the greedy target policy while *behaving under* an exploratory one.
+$Q^{*}$: it *learns about* the greedy target policy while *behaving under* an exploratory one.
 Swap that `max` for the action you actually took and you have **SARSA**, which is on-policy
 and converges to $Q^{\pi_\epsilon}$ — a more conservative policy that hedges against its own
 future exploration mistakes (it would burn diesel earlier here, to avoid getting caught dry
@@ -399,7 +399,7 @@ is nothing to reweight.
 
 **Q. State the Robbins–Monro conditions and prove a constant α cannot converge to Q\*.**
 Stochastic approximation needs $\sum_n \alpha_n = \infty$ (the steps must retain enough total
-mass to travel from any initialisation to $Q^\*$) and $\sum_n \alpha_n^2 < \infty$ (the
+mass to travel from any initialisation to $Q^{*}$) and $\sum_n \alpha_n^2 < \infty$ (the
 injected sampling noise must be annealed away). My schedule
 $\alpha_n = 1/(1+n(s,a))^{0.7}$ satisfies both: $\sum n^{-0.7}$ diverges, $\sum n^{-1.4}$
 converges. Note $n$ is the **per-pair** visit count `visits[s,a]`, not a global step counter —
@@ -407,7 +407,7 @@ the theory requires that.
 A **constant** $\alpha$ fails the second condition: $\sum \alpha^2 = \infty$. Each update keeps
 injecting a fresh $\alpha \cdot$ (TD noise) term that is never damped, so $Q$ does not converge
 to a point at all — it converges *in distribution* to a random variable jittering in a ball of
-radius $O(\alpha)$ around $Q^\*$. Bigger $\alpha$, bigger ball. I do not just assert this; the
+radius $O(\alpha)$ around $Q^{*}$. Bigger $\alpha$, bigger ball. I do not just assert this; the
 sweep shows exactly the predicted ordering:
 polynomial $^{0.7}$ → **25.07 % ± 2.10**, constant 0.10 → **50.43 % ± 2.85**,
 constant 0.50 → **57.86 % ± 3.75**. The constant-α runs flatten out short of the optimum
@@ -436,7 +436,7 @@ exploration work, so I ablated it rather than quietly taking the credit — and 
 surprise: `q_init = -200` (pessimistic) scores **21.05 % ± 1.30** versus optimistic
 **25.07 % ± 2.10**. Better, and with lower variance.
 The explanation: exploring starts already guarantee 100 % coverage, so the optimism has no
-coverage left to buy. What is left is a pure *scale* effect — $V^\*$ averages **−163.6**, so
+coverage left to buy. What is left is a pure *scale* effect — $V^{*}$ averages **−163.6**, so
 −200 starts near the correct magnitude, while 0 is wildly off-scale and the learner must spend
 thousands of updates walking every entry down before the argmax means anything. Optimism is a
 real mechanism; it is just not what is carrying this run. The exploring starts are.
@@ -467,7 +467,7 @@ states on a provably no-op duplicate; (2) the argmax between two exactly-equal a
 coin flip, so any VI-vs-QL *policy agreement* number would be measuring the coin, not the
 policies; (3) it would inflate my legal-pair count and flatter my coverage statistic.
 The masking accounts for exactly the missing pairs: 4752 total, minus 792 (PUMP_GRID with the
-grid down) minus 528 (PUMP_GEN with no diesel) = **3432 legal**. And $V^\*$ is unchanged by
+grid down) minus 528 (PUMP_GEN with no diesel) = **3432 legal**. And $V^{*}$ is unchanged by
 masking — a duplicate action cannot change a max. Masking costs nothing in optimality and buys
 everything in sample efficiency and metric honesty.
 
@@ -546,13 +546,13 @@ identical**. `_physics` falls through to `else: inflow = 0, pump_cost = 0.0` —
 on a dead line moves no water and costs nothing.
 
 Had I not masked it, three things happen, and only the first is harmless:
-- $V^\*$ and the optimal *value* are **unchanged** — a duplicate action cannot change a max. So
+- $V^{*}$ and the optimal *value* are **unchanged** — a duplicate action cannot change a max. So
   no, this is not me hiding a modelling error; the optimum is the same either way.
 - Q-learning would burn roughly a third of its exploration in those **792** states repeatedly
   learning the value of a no-op it already knows under a different name. Straight sample-efficiency loss.
 - Every argmax in those 792 states becomes a **coin flip between two exactly-equal actions**.
   Any policy-agreement metric would then be reporting the coin. That is why I never report a
-  label match against $\pi^\*$ — I report `action_optimality`, which asks whether the chosen
+  label match against $\pi^{*}$ — I report `action_optimality`, which asks whether the chosen
   action is *as good as* the best available one (value gap $\le$ tol). It comes to **86.6 %** of
   states. A raw argmax comparison would have been louder, cheaper, and meaningless.
 
@@ -598,7 +598,7 @@ What would be wrong if it returned $\mathbb{E}[U]$: the reward would become dete
 exactly equal to $R(s,a)$. That means I would have handed the *demand distribution* — half the
 model — to an agent I am calling model-free. The comparison would silently become
 "VI with $P$ and $R$" versus "Q-learning with $R$", which is not the experiment I claim to have
-run. And here is the nasty part: **it would still converge to the same $Q^\*$**, because the TD
+run. And here is the nasty part: **it would still converge to the same $Q^{*}$**, because the TD
 update only needs an unbiased sample of $R(s,a)$ and a zero-variance sample is trivially
 unbiased. It would just converge *faster* and look *better*. So the bug would be completely
 invisible in the results and visible only in the code. That is exactly the class of error worth
@@ -621,7 +621,7 @@ is the actual error.
 
 This is the known effective-planning-horizon result: when your value estimates are noisy, a
 lower discount acts as **regularisation**. Asymptotically $\gamma = 0.99$ training must win —
-it is the only one whose fixed point is the right $Q^\*$. At 8000 episodes it does not, because
+it is the only one whose fixed point is the right $Q^{*}$. At 8000 episodes it does not, because
 8000 episodes is nowhere near asymptotic.
 
 And the reason 0.90 gets away with it *here specifically*: $1/(1-0.90) = 10$ hours of lookahead.
@@ -653,9 +653,9 @@ window. No time-blind threshold can express that, no matter how you tune it.
 
 *(iii) A witness state.* At **14:00, tank 4/10, grid up, full ration**: pumping on grid costs
 **0.97 MORE** this hour in expected reward than idling. It is nevertheless the optimal action —
-$Q^\*(s, \text{PUMP\_GRID}) - Q^\*(s, \text{IDLE}) = \mathbf{+4.69}$. So
+$Q^{*}(s, \text{PUMP\_GRID}) - Q^{*}(s, \text{IDLE}) = \mathbf{+4.69}$. So
 $+4.69 - (-0.97) = \mathbf{+5.66}$ of that advantage comes **purely from the future**. That is
-the signature of lookahead, in one state, computed from $Q^\*$, not asserted. The agent takes a
+the signature of lookahead, in one state, computed from $Q^{*}$, not asserted. The agent takes a
 certain loss now to hold water it will need in four hours' time.
 
 **8. "Is your state Markov with respect to REALITY, or only to your model?"**

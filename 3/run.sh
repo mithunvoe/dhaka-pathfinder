@@ -40,6 +40,10 @@ case "$CMD" in
   test)
     python3 -m pytest tests/ -v
     ;;
+  pdfs)
+    # Turn every markdown doc into a PDF (pdf/), plus one combined dossier.
+    exec scripts/build_pdfs.sh "$@"
+    ;;
   report)
     # Build the LaTeX report (needs pdflatex + bibtex).
     cd report
@@ -59,7 +63,8 @@ Usage: ./run.sh <command>
   rl [--quick]     Part B: Value Iteration vs Q-learning (--quick = ~40 s)
   all              Both parts
   test             Unit tests (pytest)
-  report           Compile report/main.pdf
+  report           Compile report/main.pdf  (the actual submission)
+  pdfs             Convert every markdown doc to PDF, into pdf/
   help             This message
 
 Figures land in results/plots/ and tables in results/tables/.
